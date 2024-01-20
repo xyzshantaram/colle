@@ -6,6 +6,14 @@ body {
     align-items: center;
 }
 
+.form-group {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    max-width: 30ch;
+    align-items: center;
+}
+
 #root {
     width: 100%;
     max-width: 80ch;
