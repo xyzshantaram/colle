@@ -33,7 +33,7 @@ export class Colle {
         if (!this.token) throw { message: "Not authed!" };
         const res = await fetch(this._makeUrl("file"), {
             method: "DELETE",
-            body: { uuid },
+            body: JSON.stringify({ uuid }),
             headers: {
                 Authorization: "Bearer " + this.token
             }
@@ -50,7 +50,7 @@ export class Colle {
     async genSignupCode(pass) {
         const res = await fetch("/signup-code", {
             method: "POST",
-            body: { pass }
+            body: JSON.stringify({ pass })
         }).then(v => v.json());
 
         if (!res.code) throw res;
@@ -81,7 +81,7 @@ export class Colle {
     async signIn(username, password) {
         const res = await fetch("/sign-in", {
             method: "POST",
-            body: { username, password }
+            body: JSON.stringify({ username, password })
         }).then(v => v.json());
 
         if (res.message !== "ok") {
@@ -100,9 +100,12 @@ export class Colle {
      * @throws {object} Throws an object with an error message if signup fails.
      */
     async signUp(username, password, code) {
+        if (!username || !password || !code) throw {
+            'message': "Enter your username, password, and a signup code."
+        };
         const res = await fetch("/sign-up", {
             method: "POST",
-            body: { username, password, code }
+            body: JSON.stringify({ username, password, code })
         }).then(v => v.json());
 
         if (res.message !== "ok") {
@@ -124,7 +127,7 @@ export class Colle {
         if (!this.token) throw { message: "Not authed!" };
         const res = await fetch(this._makeUrl("file"), {
             method: "POST",
-            body: { contents, metadata },
+            body: JSON.stringify({ contents, metadata }),
             headers: {
                 Authorization: "Bearer " + this.token,
                 'Content-Type': type
