@@ -4,7 +4,8 @@ import { nhttp, lmdb, bcrypt, jwt } from "./deps.ts";
 interface ColleOptions {
     db: lmdb.Database,
     pass: string,
-    cryptoKey: CryptoKey
+    cryptoKey: CryptoKey,
+    env: "PROD" | "DEBUG";
 }
 
 const JwtHeader: jwt.Header = {
@@ -12,7 +13,7 @@ const JwtHeader: jwt.Header = {
     typ: "JWT"
 }
 
-export const createApp = ({ db, pass, cryptoKey }: ColleOptions) => {
+export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
     const app = nhttp.nhttp({
         bodyParser: { json: "5mb" }
     });
@@ -21,6 +22,15 @@ export const createApp = ({ db, pass, cryptoKey }: ColleOptions) => {
 
     const error = (response: nhttp.HttpResponse) =>
         (message: string, code = 400) => response.status(code).json({ message });
+
+
+    const contents = await Deno.readTextFile("./public/index.html");
+    app.get("/", async ({ response }) => {
+        if (env == "DEBUG") {
+            response.html(await Deno.readTextFile("./public/index.html"));
+        }
+        else response.html(contents);
+    })
 
     app.post('/signup-code', async ({ body, response }) => {
         if (!body.pass || body.pass !== pass) return error(response)("Invalid or missing admin password.");

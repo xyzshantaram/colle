@@ -26,7 +26,10 @@ if (import.meta.main) {
         await db.put(['crypto-key'], cryptoKey);
     }
 
-    const app = createApp({
+    const env = (Deno.env.get("COLLE_ENV") || "PROD") as "PROD" | "DEBUG";
+
+    const app = await createApp({
+        env,
         db,
         pass,
         cryptoKey: await crypto.subtle.importKey(
