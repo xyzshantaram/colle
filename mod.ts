@@ -1,5 +1,5 @@
-import { createApp } from "./app.ts";
-import { lmdb } from "./deps.ts";
+import { createApp } from "./src/app.ts";
+import { lmdb } from "./src/deps.ts";
 
 if (import.meta.main) {
     const db = lmdb.open({
@@ -49,5 +49,5 @@ if (import.meta.main) {
     })
 }
 
-import { Colle } from "./Colle.js";
+import { Colle } from "./src/Colle.js";
 export { Colle };
