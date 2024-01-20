@@ -94,10 +94,15 @@ export const createApp = ({ db, pass, cryptoKey }: ColleOptions) => {
 
     app.delete("/file", async ({ body, headers, response }) => {
         const token = headers.get("Authorization");
-        const [msg, _] = await checkToken(token);
+        const [msg, result] = await checkToken(token);
         if (msg) return error(response)(msg);
 
         if (!body.uuid) return error(response)("UUID must be specified!");
+        const file = db.get(['files', body.uuid]);
+
+        if (!file || file.uploader !== result!.username) {
+            return error(response)("File not found.", 404);
+        }
 
         await db.remove(["files", body.uuid]);
         return {

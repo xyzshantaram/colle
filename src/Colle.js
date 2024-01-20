@@ -25,18 +25,20 @@ export class Colle {
     /**
      * Deletes a file from the server.
      * @param {string} uuid - The UUID of the file to delete.
-     * @returns {Promise<Response>} A promise that resolves with the response from the server.
-     * @throws {object} Throws an object with an error message if not authed.
+     * @returns {Promise<void>} A promise that resolves if the delete succeeded.
+     * @throws {object} Throws an object with an error message if not authed 
+     * or the file wasn't found.
      */
     async deleteFile(uuid) {
         if (!this.token) throw { message: "Not authed!" };
-        return await fetch(this._makeUrl("file"), {
+        const res = await fetch(this._makeUrl("file"), {
             method: "DELETE",
             body: { uuid },
             headers: {
                 Authorization: "Bearer " + this.token
             }
-        });
+        }).then(res => res.json());
+        if (res.message !== "ok") throw res;
     }
 
     /**
