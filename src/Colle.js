@@ -110,17 +110,19 @@ export class Colle {
 
     /**
      * Uploads a file to Colle.
-     * @param {string} contents - The contents of the file to upload.
+     * @param {string} contents - The contents of the file to upload, either as plaintext or
+     * encoded as base64.
      * @param {string} type - The content type of the file.
-     * @param {string} [name=""] - The name of the file.
+     * @param {object} [metadata=undefined] - Any miscellaneous metadata you wish to include
+     * about the file. For example, syntax highlight language, or filename.
      * @returns {Promise<string>} A promise that resolves with the UUID of the uploaded file.
      * @throws {object} Throws an object with an error message if the upload fails.
      */
-    async upload(contents, type, name = "") {
+    async upload(contents, type, metadata) {
         if (!this.token) throw { message: "Not authed!" };
         const res = await fetch(this._makeUrl("file"), {
             method: "POST",
-            body: { contents, name },
+            body: { contents, metadata },
             headers: {
                 Authorization: "Bearer " + this.token,
                 'Content-Type': type

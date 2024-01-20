@@ -81,10 +81,12 @@ export const createApp = ({ db, pass, cryptoKey }: ColleOptions) => {
         const type = headers.get("Content-Type");
         if (!type) return error(response)("Content type of file must be specified!");
 
+        const metadata = body.metadata ? JSON.stringify(body.metadata) : undefined;
+
         await db.put(["files", uuid], {
             uploader: result!.username,
             data: body.contents,
-            name: body.name,
+            metadata,
             type
         });
         return { uuid };
@@ -111,7 +113,10 @@ export const createApp = ({ db, pass, cryptoKey }: ColleOptions) => {
         if (!params.uuid) return error(response)("UUID must be specified!");
         const file = db.get(["files", params.uuid]);
         if (!file) return error(response)("Not found", 404);
-        return file;
+        return {
+            ...file,
+            metadata: JSON.parse(file.metadata)
+        };
     })
 
     return app;
