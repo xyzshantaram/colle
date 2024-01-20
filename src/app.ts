@@ -1,5 +1,5 @@
 import Random from "https://deno.land/x/random@v1.1.2/Random.js";
-import { nhttp, lmdb, bcrypt, jwt } from "./deps.ts";
+import { nhttp, lmdb, bcrypt, jwt, serveStatic } from "./deps.ts";
 
 interface ColleOptions {
     db: lmdb.Database,
@@ -18,6 +18,7 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         bodyParser: { json: "5mb" }
     });
 
+    app.use(serveStatic('./public'));
     const r = new Random();
 
     const error = (response: nhttp.HttpResponse) =>
@@ -25,6 +26,7 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
 
 
     const contents = await Deno.readTextFile("./public/index.html");
+
     app.get("/", async ({ response }) => {
         if (env == "DEBUG") {
             response.html(await Deno.readTextFile("./public/index.html"));
