@@ -1,6 +1,8 @@
 import { cf, message } from "../deps.js";
 
 export const AuthController = (client) => {
+    const store = new cf.Store(false);
+
     const [elt, indicator, form, link, codeGroup, wrapper] = cf.nu('div#auth-controller', {
         raw: true,
         gimme: ['.auth-indicator', '.auth-form', '.signup-link', '.signup-code-group', '.auth-form-wrapper'],
@@ -64,6 +66,8 @@ export const AuthController = (client) => {
             else {
                 await client.signIn(username, password);
                 indicator.innerHTML = cf.html`Signed in as <strong>${username}</strong>`;
+                store.update(true);
+                indicator.click();
             }
         }
         catch (e) {
@@ -71,5 +75,5 @@ export const AuthController = (client) => {
         }
     }
 
-    return [elt];
+    return [elt, store];
 }
