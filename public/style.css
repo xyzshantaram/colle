@@ -1,0 +1,104 @@
+body {
+    font-family: "Mononoki", monospace;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#root {
+    width: 100%;
+    max-width: 80ch;
+}
+
+a,
+a:link,
+a:visited,
+a:hover {
+    color: inherit !important;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.auth-indicator {
+    text-decoration: underline;
+    text-align: center;
+    margin: 1rem;
+}
+
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.6);
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#code-generator {
+    background-color: white;
+    padding: 1rem;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    max-width: 30ch;
+}
+
+.form-group.submit-group {
+    justify-content: flex-end;
+}
+
+input,
+button {
+    background-color: white;
+    padding: 0.4rem;
+    color: black;
+    border: 2px solid gray;
+}
+
+input:focus,
+button:focus {
+    border-color: black;
+}
+
+input[type=submit] {
+    cursor: pointer;
+}
+
+ul {
+    display: flex;
+    flex-direction: column;
+    margin: 1rem;
+    padding-inline-start: 0;
+}
+
+.auth-indicator {
+    cursor: pointer;
+}
+
+@media screen and not (hover:none) {
+
+    input:hover,
+    button:hover {
+        border-color: #303030;
+    }
+
+}
