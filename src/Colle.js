@@ -84,7 +84,7 @@ export class Colle {
             body: JSON.stringify({ username, password })
         }).then(v => v.json());
 
-        if (res.message !== "ok") {
+        if (!res.token) {
             throw res;
         }
 
