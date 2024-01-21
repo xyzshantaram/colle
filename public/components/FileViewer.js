@@ -1,4 +1,4 @@
-import { cf, message, fatal, getName } from "../deps.js";
+import { cf, fatal, getName } from "../deps.js";
 import { highlight, HL_KEYWORDS } from "https://esm.sh/macrolight@1.5.0";
 
 export const FileViewer = async (client, uuid = "") => {
