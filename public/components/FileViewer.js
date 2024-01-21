@@ -1,12 +1,5 @@
-import { cf, message, fatal } from "../deps.js";
+import { cf, message, fatal, getName } from "../deps.js";
 import { highlight, HL_KEYWORDS } from "https://esm.sh/macrolight@1.5.0";
-
-const getName = (file, quoted = true) => {
-    const name = file.metadata.name || file.metadata.name || '';
-    if (!name) return undefined;
-    if (quoted) return `"${name}"`;
-    return name;
-}
 
 export const FileViewer = async (client, uuid = "") => {
     try {
@@ -20,22 +13,15 @@ export const FileViewer = async (client, uuid = "") => {
                 (hlMode && hlMode !== 'plain' ? highlight(file.data, { keywords: HL_KEYWORDS[hlMode] }) : file.data)
                 : cf.html`<img src="${file.data}" alt="${file.metadata?.description || "No alt text provided."}">`;
 
-            const [_, deleteLink] = cf.extend(elt, {
+            cf.extend(elt, {
                 raw: true,
                 gimme: ['.delete-link'],
                 c: cf.html`
             <h2>Viewing paste ${getName(file)} by ${file.uploader}</h2>
             <div class='${textMode ? 'text-wrapper' : 'image-wrapper'}'>${cf.r(displayContents)}</div>
-            <ul class='options-wrapper'>
-                <li><a class="delete-link" href="javascript:void(0)">Delete</a></li>
-            </ul>
             `
             });
 
-            deleteLink.onclick = async () => {
-                await client.deleteFile(uuid);
-                await message('Deleted successfully.');
-            }
             elt.classList.remove('hidden');
         }
 
