@@ -15,7 +15,7 @@ const JwtHeader: jwt.Header = {
 
 export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
     const app = nhttp.nhttp({
-        bodyParser: { json: "10mb" }
+        bodyParser: false
     });
 
     app.use(serveStatic('./public'));
@@ -34,7 +34,8 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         else response.html(contents);
     })
 
-    app.post('/signup-code', async ({ body, response }) => {
+    app.post('/signup-code', async ({ request, response }) => {
+        const body = await request.json();
         if (!body.pass || body.pass !== pass) return error(response)("Invalid or missing admin password.");
 
         const code = r.string(6);
@@ -43,7 +44,8 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         return { code };
     })
 
-    app.post('/sign-up', async ({ body, response }) => {
+    app.post('/sign-up', async ({ request, response }) => {
+        const body = await request.json();
         if (!body.username || !body.password || !body.code) return error(response)("Not enough parameters for signup.");
         if (db.get(['users', body.username])) return error(response)("User exists.");
         if (!db.get(['signup-codes', body.code])) return error(response)("Signup code does not exist.");
@@ -54,7 +56,8 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         return { message: 'ok' };
     });
 
-    app.post('/sign-in', async ({ body, response }) => {
+    app.post('/sign-in', async ({ request, response }) => {
+        const body = await request.json();
         if (!body.username || !body.password) return error(response)("Invalid username or password.");
         const user = db.get(['users', body.username]);
 
@@ -84,8 +87,8 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         }
     }
 
-    app.post("/file", async ({ response, headers, newRequest }) => {
-        const body = await newRequest.json();
+    app.post("/file", async ({ response, headers, request }) => {
+        const body = await request.json();
         const token = headers.get("Authorization");
         const [msg, result] = await checkToken(token);
         if (msg) return error(response)(msg);
@@ -106,7 +109,8 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         return { uuid };
     })
 
-    app.delete("/file", async ({ body, headers, response }) => {
+    app.delete("/file", async ({ request, headers, response }) => {
+        const body = await request.json();
         const token = headers.get("Authorization");
         const [msg, result] = await checkToken(token);
         if (msg) return error(response)(msg);
