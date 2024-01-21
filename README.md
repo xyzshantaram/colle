@@ -24,6 +24,13 @@ import { Colle } from "https://deno.land/x/colle@2.0.1/src/Colle.js";
 
 if working directly in the browser.
 
+## Todo
+
+- [] FE: Add md parsing
+- [] Allow nicknames (custom slugs) for pastes
+- [] Implement signout somehow
+- [] Cache JWT on client side
+
 ## License
 
 See [LICENSE](./LICENSE).
