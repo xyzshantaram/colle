@@ -11,10 +11,18 @@ function blobToBase64(blob) {
 export const Uploader = (client, open = false) => {
     const fileData = new cf.Store({});
 
-    const [elt, textarea, uploadField, txtUpload, img, imgUpload, input, description] =
+    const [elt, textarea, textfileName, uploadText, previewImg, uploadImage, fileInput, imgDescription] =
         cf.nu("details#uploader.tabs.hidden", {
             raw: true,
-            gimme: ['textarea', '#upload-filename', '.upload-text', '.upload-img-preview', '.upload-img', 'input[type=file]', '.upload-description'],
+            gimme: [
+                'textarea',
+                '#upload-filename',
+                '.upload-text',
+                '.upload-img-preview',
+                '.upload-img',
+                'input[type=file]',
+                '.upload-description'
+            ],
             c: cf.html`
         <summary><h2>Upload a file<h2></summary>
 
@@ -65,7 +73,7 @@ export const Uploader = (client, open = false) => {
 
     fileData.on('update', (val) => {
         if (val.isImg) {
-            img.src = val.contents;
+            previewImg.src = val.contents;
         }
     })
 
@@ -81,12 +89,12 @@ export const Uploader = (client, open = false) => {
     }
 
     globalThis.addEventListener('paste', async e => await handleFile(e.clipboardData.files[0]));
-    input.onchange = async _ => await handleFile(input.files[0]);
+    fileInput.onchange = async _ => await handleFile(fileInput.files[0]);
 
-    imgUpload.onclick = txtUpload.onclick = async () => {
+    uploadImage.onclick = uploadText.onclick = async () => {
         const language = (_ => {
             if (fileData.value.isImg) return;
-            const trimmedName = uploadField.value.trim();
+            const trimmedName = textfileName.value.trim();
             if (!trimmedName) return;
             const split = trimmedName.split('.');
             if (split.at(-1) === trimmedName) return;
@@ -94,8 +102,9 @@ export const Uploader = (client, open = false) => {
         })();
 
         const uuid = await client.upload(fileData.value.contents, fileData.value.type, {
+            name: fileData.value.isImg ? undefined : (textfileName.value.trim() || undefined),
             language,
-            description: description.value || undefined
+            description: imgDescription.value || undefined
         });
 
         window.location = client.makeUrl(`/?view=${uuid}`);

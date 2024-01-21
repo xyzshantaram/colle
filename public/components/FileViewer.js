@@ -1,6 +1,12 @@
 import { cf, message, fatal } from "../deps.js";
 import { highlight, HL_KEYWORDS } from "https://esm.sh/macrolight@1.5.0";
 
+const getName = (file, quoted = true) => {
+    const name = file.metadata.name || file.metadata.name || '';
+    if (!name) return undefined;
+    if (quoted) return `"${name}"`;
+    return name;
+}
 
 export const FileViewer = async (client, uuid = "") => {
     try {
@@ -18,7 +24,7 @@ export const FileViewer = async (client, uuid = "") => {
                 raw: true,
                 gimme: ['.delete-link'],
                 c: cf.html`
-            <h2>Viewing file</h2>
+            <h2>Viewing paste ${getName(file)} by ${file.uploader}</h2>
             <div class='${textMode ? 'text-wrapper' : 'image-wrapper'}'>${cf.r(displayContents)}</div>
             <ul class='options-wrapper'>
                 <li><a class="delete-link" href="javascript:void(0)">Delete</a></li>
