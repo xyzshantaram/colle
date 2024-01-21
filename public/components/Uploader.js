@@ -8,13 +8,16 @@ function blobToBase64(blob) {
     });
 }
 
-export const Uploader = (client) => {
+export const Uploader = (client, open = false) => {
     const fileData = new cf.Store({});
 
-    const [elt, textarea, uploadField, txtUpload, img, imgUpload, input] = cf.nu("div#uploader.tabs.hidden", {
-        raw: true,
-        gimme: ['textarea', '#upload-filename', '.upload-text', '.upload-img-preview', '.upload-img', 'input[type=file]'],
-        c: cf.html`
+    const [elt, textarea, uploadField, txtUpload, img, imgUpload, input, description] =
+        cf.nu("details#uploader.tabs.hidden", {
+            raw: true,
+            gimme: ['textarea', '#upload-filename', '.upload-text', '.upload-img-preview', '.upload-img', 'input[type=file]', '.upload-description'],
+            c: cf.html`
+        <summary><h2>Upload a file<h2></summary>
+
         <div class=tab-buttons>
             <button type=button class='tab-button' data-tabname="Text">Text</button>
             <button type=button class='tab-button' data-tabname="Image">Image</button>
@@ -35,6 +38,10 @@ export const Uploader = (client) => {
             </div>
         </div>
         <div class=tab-content data-tabname="Image">
+            <div class="form-group">
+                <label for=upload-description>Image description (optional)</label>
+                <input class=upload-description type=text name=upload-description placeholder="None">
+            </div>
             <div class=upload-img-wrapper>
                 <input type=file accept="image/png, image/jpeg, image/webp">
                 <img class=upload-img-preview>
@@ -44,8 +51,10 @@ export const Uploader = (client) => {
             </div>
         </div>
         `,
-        a: { 'data-tabset-name': 'Upload' }
-    });
+            a: { 'data-tabset-name': 'Upload' }
+        });
+
+    elt.toggleAttribute('open', open);
 
     textarea.oninput = () => {
         fileData.update({
@@ -74,7 +83,7 @@ export const Uploader = (client) => {
     globalThis.addEventListener('paste', async e => await handleFile(e.clipboardData.files[0]));
     input.onchange = async _ => await handleFile(input.files[0]);
 
-    imgUpload.onclick = txtUpload.onclick = () => {
+    imgUpload.onclick = txtUpload.onclick = async () => {
         const language = (_ => {
             if (fileData.value.isImg) return;
             const trimmedName = uploadField.value.trim();
@@ -84,7 +93,12 @@ export const Uploader = (client) => {
             return split.at(-1);
         })();
 
-        client.upload(fileData.value.contents, fileData.value.type, { language });
+        const uuid = await client.upload(fileData.value.contents, fileData.value.type, {
+            language,
+            description: description.value || undefined
+        });
+
+        window.location = client.makeUrl(`/?view=${uuid}`);
     }
     return [elt];
 }
