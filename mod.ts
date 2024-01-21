@@ -4,7 +4,9 @@ import { lmdb } from "./src/deps.ts";
 if (import.meta.main) {
     const db = lmdb.open({
         path: './colle.lmdb',
-        compression: true
+        compression: true,
+        dupSort: true,
+        encoding: 'ordered-binary'
     });
 
     const pass = Deno.env.get("COLLE_ADMIN_PASS");

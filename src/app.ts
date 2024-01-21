@@ -99,8 +99,10 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
 
         const metadata = body.metadata ? JSON.stringify(body.metadata) : undefined;
 
+        const username = result!.username as string;
+        await db.put(['user-pastes', username as string], uuid);
         await db.put(["files", uuid], {
-            uploader: result!.username,
+            uploader: username,
             data: body.contents,
             metadata,
             type
@@ -140,6 +142,18 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
             ...file,
             metadata: JSON.parse(file.metadata || "null")
         };
+    })
+
+    app.get('/files', async ({ headers, response }) => {
+        const token = headers.get("Authorization");
+        const [msg, result] = await checkToken(token);
+        if (msg) return error(response)(msg);
+
+        const username = result!.username as string;
+        const pastes: string[] = [];
+        db.getValues(['user-pastes', username]).forEach(paste => pastes.push(paste));
+
+        return pastes;
     })
 
     return app;
