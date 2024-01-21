@@ -1,11 +1,12 @@
 import { cf, message } from "../deps.js";
+import { UserPastes } from "./UserPastes.js";
 
 export const AuthController = (client) => {
     const store = new cf.Store(false);
 
-    const [elt, indicator, form, link, codeGroup, wrapper] = cf.nu('div#auth-controller', {
+    const [elt, indicator, form, signupLink, codeGroup, wrapper, codeField] = cf.nu('div#auth-controller', {
         raw: true,
-        gimme: ['.auth-indicator', '.auth-form', '.signup-link', '.signup-code-group', '.auth-form-wrapper'],
+        gimme: ['.auth-indicator', '.auth-form', '.signup-link', '.signup-code-group', '.auth-form-wrapper', '#auth-code'],
         c: cf.html`
         <div class='auth-indicator' tabindex=0>
             Not signed in.
@@ -45,10 +46,11 @@ export const AuthController = (client) => {
     }
 
     let codeGroupVisible = false;
-    link.onclick = () => {
+    signupLink.onclick = () => {
         codeGroup.classList.toggle("hidden", codeGroupVisible);
         codeGroupVisible = !codeGroupVisible;
-        link.innerHTML = codeGroupVisible ? "Sign in" : "Don't have an account?";
+        signupLink.innerHTML = codeGroupVisible ? "Sign in" : "Don't have an account?";
+        if (!codeGroupVisible) codeField.value = '';
     }
 
     form.onsubmit = async (e) => {
@@ -61,13 +63,15 @@ export const AuthController = (client) => {
         try {
             if (code) {
                 await client.signUp(username, password, code);
+                signupLink.click();
                 await message("Signed up successfully. You can now sign in as usual.");
             }
             else {
                 await client.signIn(username, password);
                 indicator.innerHTML = cf.html`Signed in as <strong>${username}</strong>`;
                 store.update(true);
-                indicator.click();
+                wrapper.remove();
+                elt.append(...await UserPastes(client));
             }
         }
         catch (e) {
