@@ -13,13 +13,13 @@ deno run -A --unstable src/mod.ts
 An API client can be imported with:
 
 ```ts
-import { Colle } from "https://deno.land/x/colle@1.2.4/mod.ts";
+import { Colle } from "https://deno.land/x/colle@1.2.5/mod.ts";
 ```
 
 if using TypeScript, and
 
 ```js
-import { Colle } from "https://deno.land/x/colle@1.2.4/src/Colle.js";
+import { Colle } from "https://deno.land/x/colle@1.2.5/src/Colle.js";
 ```
 
 if working directly in the browser.

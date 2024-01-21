@@ -67,7 +67,6 @@ export class Colle {
      * not been authed with signIn().
      */
     async getFile(uuid) {
-        if (!this.token) throw { message: "Not authed!" };
         return await fetch(this.makeUrl(`/file/${uuid}`)).then(res => res.json());
     }
 
