@@ -31,7 +31,7 @@ export class Colle {
      */
     async deleteFile(uuid) {
         if (!this.token) throw { message: "Not authed!" };
-        const res = await fetch(this._makeUrl("file"), {
+        const res = await fetch(this.makeUrl("/file"), {
             method: "DELETE",
             body: JSON.stringify({ uuid }),
             headers: {
@@ -61,14 +61,14 @@ export class Colle {
      * Gets a file from Colle.
      * @param {string} uuid - The UUID of the file to retrieve.
      * @returns {Promise<object>} A promise that resolves with the file info. Available
-     * keys: `name` (optional), `type` (the content type of the file), `contents`
+     * keys: `metadata` (optional), `type` (the content type of the file), `contents`
      * (the file contents), and `uploader` (the username of the uploader).
      * @throws {object} Throws an object with an error message if the instance has
      * not been authed with signIn().
      */
     async getFile(uuid) {
         if (!this.token) throw { message: "Not authed!" };
-        return await fetch(this._makeUrl(`file/${uuid}`)).then(res => res.json());
+        return await fetch(this.makeUrl(`/file/${uuid}`)).then(res => res.json());
     }
 
     /**
@@ -125,7 +125,7 @@ export class Colle {
      */
     async upload(contents, type, metadata) {
         if (!this.token) throw { message: "Not authed!" };
-        const res = await fetch(this._makeUrl("file"), {
+        const res = await fetch(this.makeUrl("/file"), {
             method: "POST",
             body: JSON.stringify({ contents, metadata }),
             headers: {
@@ -140,11 +140,14 @@ export class Colle {
 
     /**
      * Creates a full URL for a given route by appending it to the root URL.
-     * @private
      * @param {string} route - The route to append to the root URL.
      * @returns {string} The full URL.
      */
-    _makeUrl(route) {
-        return this.root + "/" + route;
+    makeUrl(route) {
+        console.log([route, this.root + route.slice(1, route.length), this.root + route]);
+        if (this.root === "/") {
+            return this.root + route.slice(1, route.length);
+        }
+        return this.root + route;
     }
 }
