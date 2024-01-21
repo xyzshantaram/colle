@@ -31,7 +31,7 @@ export const CodeGenerator = (client) => {
         const pass = form.querySelector("#admin-password").value.trim();
         try {
             const result = await client.genSignupCode(pass);
-            results.append(cf.nu('li', { c: result }));
+            results.append(...cf.nu('li', { c: result }));
         }
         catch (e) {
             await message(e.message);
