@@ -15,7 +15,7 @@ const JwtHeader: jwt.Header = {
 
 export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
     const app = nhttp.nhttp({
-        bodyParser: { json: "5mb" }
+        bodyParser: { json: "10mb" }
     });
 
     app.use(serveStatic('./public'));
@@ -84,7 +84,8 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         }
     }
 
-    app.post("/file", async ({ body, response, headers }) => {
+    app.post("/file", async ({ response, headers, request }) => {
+        const body = await request.json();
         const token = headers.get("Authorization");
         const [msg, result] = await checkToken(token);
         if (msg) return error(response)(msg);
@@ -101,6 +102,7 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
             metadata,
             type
         });
+
         return { uuid };
     })
 
@@ -132,7 +134,7 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         if (!file) return error(response)("Not found", 404);
         return {
             ...file,
-            metadata: JSON.parse(file.metadata)
+            metadata: JSON.parse(file.metadata || "null")
         };
     })
 
