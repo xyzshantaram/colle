@@ -140,6 +140,19 @@ export class Colle {
     }
 
     /**
+     * List the files for the currently authenticated user.
+     * @returns The list of files, or an object containing an error message.
+     */
+    listFiles() {
+        if (!this.token) throw { message: "Not authed!" };
+        const res = fetch(this.makeUrl('/files'), {
+            headers: { Authorization: "Bearer " + this.token }
+        }).then(res => res.json());
+        if (res.message) throw res;
+        return res;
+    }
+
+    /**
      * Creates a full URL for a given route by appending it to the root URL.
      * @param {string} route - The route to append to the root URL.
      * @returns {string} The full URL.

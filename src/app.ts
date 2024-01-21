@@ -100,7 +100,11 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         const metadata = body.metadata ? JSON.stringify(body.metadata) : undefined;
 
         const username = result!.username as string;
-        await db.put(['user-pastes', username as string], uuid);
+        const pastesKey = ['pastes', username];
+        const pastes = db.get(pastesKey) || [];
+        pastes.push(uuid);
+        await db.put(pastesKey, pastes);
+
         await db.put(["files", uuid], {
             uploader: username,
             data: body.contents,
@@ -116,13 +120,19 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         const token = headers.get("Authorization");
         const [msg, result] = await checkToken(token);
         if (msg) return error(response)(msg);
+        const username = result!.username as string;
 
         if (!body.uuid) return error(response)("UUID must be specified!");
         const file = db.get(['files', body.uuid]);
 
-        if (!file || file.uploader !== result!.username) {
+        if (!file || file.uploader !== username) {
             return error(response)("File not found.", 404);
         }
+
+        const pastes = db.get(['pastes', username]) || [];
+        const idx = pastes.indexOf(body.uuid);
+        if (idx >= 0) pastes.splice(idx, 1);
+        await db.put(['pastes', username], pastes);
 
         await db.remove(["files", body.uuid]);
         return {
@@ -150,10 +160,15 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         if (msg) return error(response)(msg);
 
         const username = result!.username as string;
-        const pastes: string[] = [];
-        db.getValues(['user-pastes', username]).forEach(paste => pastes.push(paste));
+        const pastes: string[] = db.get(['pastes', username]) || [];
 
-        return pastes;
+        return (await db.getMany(pastes.map(paste => ["files", paste])))
+            .map((value, idx) => ({
+                ...value,
+                uuid: pastes[idx],
+                data: undefined,
+                metadata: JSON.parse(value.metadata)
+            }));
     })
 
     return app;
