@@ -84,8 +84,8 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         }
     }
 
-    app.post("/file", async ({ response, headers, request }) => {
-        const body = await request.json();
+    app.post("/file", async ({ response, headers, newRequest }) => {
+        const body = await newRequest.json();
         const token = headers.get("Authorization");
         const [msg, result] = await checkToken(token);
         if (msg) return error(response)(msg);
