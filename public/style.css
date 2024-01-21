@@ -249,4 +249,8 @@ textarea:focus {
     input[type=file] {
         padding: 0;
     }
+
+    img[src] {
+        margin: 0;
+    }
 }
