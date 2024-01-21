@@ -67,7 +67,9 @@ export class Colle {
      * not been authed with signIn().
      */
     async getFile(uuid) {
-        return await fetch(this.makeUrl(`/file/${uuid}`)).then(res => res.json());
+        const res = await fetch(this.makeUrl(`/file/${uuid}`)).then(res => res.json());
+        if (res.message) throw res;
+        return res;
     }
 
     /**
@@ -143,7 +145,6 @@ export class Colle {
      * @returns {string} The full URL.
      */
     makeUrl(route) {
-        console.log([route, this.root + route.slice(1, route.length), this.root + route]);
         if (this.root === "/") {
             return this.root + route.slice(1, route.length);
         }
