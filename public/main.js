@@ -1,4 +1,4 @@
-import { Colle } from "https://deno.land/x/colle@1.2.4/src/Colle.js";
+import { Colle } from "https://deno.land/x/colle@1.2.6/src/Colle.js";
 import { AuthController } from "./components/AuthController.js";
 import { CodeGenerator } from "./components/CodeGenerator.js";
 import { Uploader } from "./components/Uploader.js";
@@ -55,13 +55,14 @@ const init = async () => {
     const root = document.querySelector('#root');
 
     const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
 
     const [codegen] = setupCodeGenerator(client);
     const [auth, authed] = AuthController(client);
-    const [uploader] = Uploader(client);
+    const [uploader] = Uploader(client, !view);
     authed.on('update', v => uploader.classList.toggle('hidden', !v));
 
-    const [fileView] = await FileViewer(client, params.get('view'));
+    const [fileView] = await FileViewer(client, view);
 
     root.append(auth, codegen, uploader, fileView);
 
