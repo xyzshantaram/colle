@@ -14,7 +14,6 @@ const checkTouch = (touch, pattern, idx, tolerance) => {
     return touch.duration > target.duration - tolerance;
 }
 
-
 export const listenForRhythm = (pattern, root, tolerance = 15, callback) => {
     const elt = typeof root === 'string' ?
         document.querySelector(root) : (typeof root === 'object' ? root : window);
