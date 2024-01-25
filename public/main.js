@@ -3,6 +3,7 @@ import { AuthController } from "./components/AuthController.js";
 import { CodeGenerator } from "./components/CodeGenerator.js";
 import { Uploader } from "./components/Uploader.js";
 import { FileViewer } from "./components/FileViewer.js";
+import { MARIO_TAPS, listenForRhythm } from "./deps.js";
 
 export const initTabs = () => {
     const tabWrappers = Array.from(document.querySelectorAll('.tabs'));
@@ -43,9 +44,9 @@ let nextKonamiPos = 0;
 
 const setupCodeGenerator = (client) => {
     const [elt, hidden] = CodeGenerator(client);
-    globalThis.addEventListener('konami', () => {
-        hidden.update(!hidden.value);
-    });
+    const toggleVis = () => hidden.update(!hidden.value);
+    globalThis.addEventListener('konami', toggleVis);
+    listenForRhythm(MARIO_TAPS, window, 100, toggleVis);
 
     return [elt];
 }
