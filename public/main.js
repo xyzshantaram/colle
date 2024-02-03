@@ -46,7 +46,7 @@ const setupCodeGenerator = (client) => {
     const [elt, hidden] = CodeGenerator(client);
     const toggleVis = () => hidden.update(!hidden.value);
     globalThis.addEventListener('konami', toggleVis);
-    listenForRhythm(MARIO_TAPS, window, 100, toggleVis);
+    listenForRhythm(MARIO_TAPS, document.querySelector('h1'), 100, toggleVis);
 
     return [elt];
 }
