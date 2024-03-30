@@ -1,4 +1,4 @@
-import { cf } from "../deps.js";
+import { cf, fatal } from "../deps.js";
 
 function blobToBase64(blob) {
     return new Promise((resolve, _) => {
@@ -101,13 +101,16 @@ export const Uploader = (client, open = false) => {
             return split.at(-1);
         })();
 
+        fatal('Uploading, you will be redirected...', 'Info');
+
         const uuid = await client.upload(fileData.value.contents, fileData.value.type, {
             name: fileData.value.isImg ? undefined : (textfileName.value.trim() || undefined),
             language,
             description: imgDescription.value || undefined
         });
 
-        window.location = client.makeUrl(`/?view=${uuid}`);
+
+        globalThis.location = client.makeUrl(`/?view=${uuid}`);
     }
     return [elt];
 }
