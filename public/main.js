@@ -1,4 +1,4 @@
-import { Colle } from "https://deno.land/x/colle@2.1.0/src/Colle.js";
+import { Colle } from "https://deno.land/x/colle@2.1.1/src/Colle.js";
 import { AuthController } from "./components/AuthController.js";
 import { CodeGenerator } from "./components/CodeGenerator.js";
 import { Uploader } from "./components/Uploader.js";
