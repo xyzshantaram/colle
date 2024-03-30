@@ -88,6 +88,13 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         }
     }
 
+    app.get('/whoami', async ({ headers, response }) => {
+        const token = headers.get("Authorization");
+        const [msg, result] = await checkToken(token);
+        if (msg) return error(response)(msg);
+        return { username: result!.username };
+    });
+
     app.post("/file", async ({ response, headers, request }) => {
         const body = await request.json();
         const token = headers.get("Authorization");
