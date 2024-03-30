@@ -139,6 +139,8 @@ ul {
     padding-inline-start: 0;
 }
 
+
+
 .auth-indicator {
     cursor: pointer;
 }
@@ -227,6 +229,32 @@ textarea:focus {
     display: flex;
 }
 
+.user-paste-list {
+    place-items: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    margin: 0;
+    gap: 1rem;
+}
+
+.user-paste-list,
+.user-paste-list ul {
+    margin: 0;
+    list-style-type: none;
+    flex-direction: row;
+    margin-top: auto;
+    gap: 0.5rem;
+}
+
+.paste-item {
+    border: 1px solid black;
+    width: calc(100% - 1rem);
+    height: calc(100% - 1rem);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
 .user-paste-list:empty::after {
     content: "No pastes found.";
 }
@@ -252,5 +280,9 @@ textarea:focus {
 
     img[src] {
         margin: 0;
+    }
+
+    .user-paste-list {
+        grid-template-columns: 1fr 1fr;
     }
 }
