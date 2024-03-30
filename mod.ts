@@ -26,7 +26,7 @@ if (import.meta.main) {
         await db.put(['crypto-key'], cryptoKey);
     }
 
-    const env = (Deno.env.get("COLLE_ENV") || "PROD") as "PROD" | "DEBUG";
+    const env = (Deno.env.get("COLLE_ENV") || "PROD") as ("PROD" | "DEBUG");
 
     const app = await createApp({
         env,
