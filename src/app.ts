@@ -68,7 +68,7 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
 
         const token = await jwt.create(JwtHeader, {
             username: body.username,
-            exp: jwt.getNumericDate(60 * 60)
+            exp: jwt.getNumericDate(7 * 24 * 60 * 60)
         }, cryptoKey);
 
         return { token };
