@@ -24,11 +24,13 @@ export const FileViewer = async (client, uuid = "") => {
                 (hlMode && hlMode !== 'plain' ? highlight(file.data, hlMode) : file.data)
                 : cf.html`<img src="${file.data}" alt="${file.metadata?.description || "No alt text provided."}">`;
 
+            const rawUrl = client.makeUrl(`/view/${uuid}`);
             cf.extend(elt, {
                 raw: true,
                 gimme: ['.delete-link'],
                 c: cf.html`
-            <h2>Viewing paste ${getName(file)} by ${file.uploader}</h2>
+            <h2>Viewing paste "${getName(file)}" by ${file.uploader}</h2>
+            <div><a href=${rawUrl}>View raw</a></div>
             <div class='${textMode ? 'text-wrapper' : 'image-wrapper'}'>${cf.r(displayContents)}</div>
             `
             });
