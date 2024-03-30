@@ -40,9 +40,14 @@ export const AuthController = async (client) => {
     });
 
     let wrapperVisible = false;
+
     indicator.onclick = () => {
         wrapper.classList.toggle('hidden', wrapperVisible);
         wrapperVisible = !wrapperVisible;
+        if (store.value) {
+            localStorage.removeItem('cached-token');
+            window.location.reload();
+        }
     }
 
     let codeGroupVisible = false;
@@ -57,6 +62,7 @@ export const AuthController = async (client) => {
         indicator.innerHTML = `Signed in as ${username}`;
         store.update(true);
         wrapper.remove();
+        indicator.title = 'Sign out';
         elt.append(...await UserPastes(client));
     }
 
