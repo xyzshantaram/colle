@@ -1,4 +1,5 @@
 import Random from "https://deno.land/x/random@v1.1.2/Random.js";
+import { decodeBase64 } from "https://deno.land/std@0.221.0/encoding/base64.ts";
 import { nhttp, lmdb, bcrypt, jwt, serveStatic } from "./deps.ts";
 
 interface ColleOptions {
@@ -144,14 +145,44 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         return error(response)("UUID must be specified!");
     })
 
-    app.get("/file/:uuid", ({ params, response }) => {
-        if (!params.uuid) return error(response)("UUID must be specified!");
-        const file = db.get(["files", params.uuid]);
-        if (!file) return error(response)("Not found", 404);
+    const getFile = (uuid: string) => {
+        if (!uuid) throw "UUID must be specified!";
+        const file = db.get(['files', uuid]);
+        if (!file) throw "No such file.";
         return {
             ...file,
             metadata: JSON.parse(file.metadata || "null")
-        };
+        }
+    }
+
+    app.get("/file/:uuid", ({ params, response }) => {
+        try {
+            return getFile(params.uuid);
+        }
+        catch (s) {
+            return error(response)(s, 400);
+        }
+    })
+
+    app.get('/view/:uuid', ({ params, response }) => {
+        try {
+            const file = getFile(params.uuid);
+            const isImage = file.type.startsWith('image');
+            response
+                .header('Content-Type', isImage ? file.type : 'text/plain')
+                .send(isImage ? decodeBase64(file.data.split(',')[1]) : file.data);
+        }
+        catch (e) {
+            response.status(500).html(`
+            <html><head><title>colle - Error</title></head>
+            <body>
+            <h1>Error</h1>
+            <pre><code>${e}</code></pre>
+            <p>Sorry about that.</p>
+            </body>
+            </html>
+            `);
+        }
     })
 
     app.get('/files', async ({ headers, response }) => {
