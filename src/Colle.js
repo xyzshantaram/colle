@@ -23,6 +23,22 @@ export class Colle {
     }
 
     /**
+     * Try authenticating with a token you've cached elsewhere.
+     * Uses the token for future requests if it is valid, throws otherwise.
+     * @param {string} token The token to try.
+     * @returns The username, if the token is valid.
+     */
+    async tryCachedToken(token) {
+        const res = await fetch(this.makeUrl('/whoami'), { headers: { Authorization: "Bearer " + this.token } });
+        if (res.ok) {
+            this.token = token;
+            return res.json().then(json => json.username);
+        }
+
+        throw await res.json();
+    }
+
+    /**
      * Deletes a file from the server.
      * @param {string} uuid - The UUID of the file to delete.
      * @returns {Promise<void>} A promise that resolves if the delete succeeded.
@@ -162,5 +178,13 @@ export class Colle {
             return this.root + route.slice(1, route.length);
         }
         return this.root + route;
+    }
+
+    /**
+     * Get the token from the client's internal state.
+     * @returns The token.
+     */
+    getToken() {
+        return this.token;
     }
 }
