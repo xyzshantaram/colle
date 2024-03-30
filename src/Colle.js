@@ -29,7 +29,7 @@ export class Colle {
      * @returns The username, if the token is valid.
      */
     async tryCachedToken(token) {
-        const res = await fetch(this.makeUrl('/whoami'), { headers: { Authorization: "Bearer " + this.token } });
+        const res = await fetch(this.makeUrl('/whoami'), { headers: { Authorization: "Bearer " + token } });
         if (res.ok) {
             this.token = token;
             return res.json().then(json => json.username);
