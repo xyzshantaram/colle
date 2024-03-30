@@ -59,7 +59,7 @@ const init = async () => {
     const view = params.get('view');
 
     const [codegen] = setupCodeGenerator(client);
-    const [auth, authed] = AuthController(client);
+    const [auth, authed] = await AuthController(client);
     const [uploader] = Uploader(client, !view);
     authed.on('update', v => uploader.classList.toggle('hidden', !v));
 
