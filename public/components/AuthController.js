@@ -54,7 +54,7 @@ export const AuthController = async (client) => {
     }
 
     const setSignedIn = async (username) => {
-        indicator.innerHTML = username;
+        indicator.innerHTML = `Signed in as ${username}`;
         store.update(true);
         wrapper.remove();
         elt.append(...await UserPastes(client));

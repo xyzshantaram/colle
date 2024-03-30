@@ -61,7 +61,7 @@ const init = async () => {
     const [codegen] = setupCodeGenerator(client);
     const [auth, authed] = await AuthController(client);
     const [uploader] = Uploader(client, !view);
-    authed.on('update', v => uploader.classList.toggle('hidden', !v));
+    authed.on('update', v => uploader.classList.toggle('hidden', !v), true);
 
     const [fileView] = await FileViewer(client, view);
 
