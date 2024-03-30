@@ -1,7 +1,7 @@
 import { cf, message } from "../deps.js";
 import { UserPastes } from "./UserPastes.js";
 
-export const AuthController = (client) => {
+export const AuthController = async (client) => {
     const store = new cf.Store(false);
 
     const [elt, indicator, form, signupLink, codeGroup, wrapper, codeField] = cf.nu('div#auth-controller', {
@@ -53,6 +53,24 @@ export const AuthController = (client) => {
         if (!codeGroupVisible) codeField.value = '';
     }
 
+    const setSignedIn = async (username) => {
+        indicator.innerHTML = username;
+        store.update(true);
+        wrapper.remove();
+        elt.append(...await UserPastes(client));
+    }
+
+    try {
+        const token = localStorage.getItem('cached-token');
+        if (token) {
+            const username = await client.tryCachedToken(token);
+            await setSignedIn(username);
+        }
+    }
+    catch {
+        console.log('Authing with cached token failed, proceeding silently...');
+    }
+
     form.onsubmit = async (e) => {
         e.preventDefault();
         const data = new FormData(form);
@@ -68,10 +86,8 @@ export const AuthController = (client) => {
             }
             else {
                 await client.signIn(username, password);
-                indicator.innerHTML = cf.html`Signed in as <strong>${username}</strong>`;
-                store.update(true);
-                wrapper.remove();
-                elt.append(...await UserPastes(client));
+                localStorage.setItem('cached-token', client.getToken());
+                await setSignedIn(username);
             }
         }
         catch (e) {
