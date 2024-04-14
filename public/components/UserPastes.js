@@ -24,7 +24,7 @@ const PasteItem = (item, client) => {
 }
 
 export const UserPastes = async (client) => {
-    const pastes = await client.listFiles();
+    const pastes = await client.listFiles() || [];
     const [elt, list] = cf.nu('details#user-pastes', {
         raw: true,
         gimme: ['ul'],

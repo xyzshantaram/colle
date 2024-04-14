@@ -201,6 +201,7 @@ export const createApp = async ({ env, db, pass, cryptoKey }: ColleOptions) => {
         const pastes: string[] = db.get(['pastes', username]) || [];
 
         return (await db.getMany(pastes.map(paste => ["files", paste])))
+            .filter(Boolean)
             .map((value, idx) => ({
                 ...value,
                 uuid: pastes[idx],
