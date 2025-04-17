@@ -1,8 +1,9 @@
 import { assert, assertEquals, assertMatch } from "@std/assert";
 import { delay } from "@std/async";
 import { createApp } from "./src/app.ts";
+import { Colle } from "./src/Colle.js";
 
-Deno.test("colle api tests", async (t) => {
+Deno.test("colle api tests (with client)", async (t) => {
     const tempKvPath = await Deno.makeTempFile();
     const kv = await Deno.openKv(tempKvPath);
 
@@ -27,105 +28,65 @@ Deno.test("colle api tests", async (t) => {
     let jwt = "";
     let fileUuid = "";
 
+    const colle = new Colle(BASE);
+
     await t.step("generate signup code", async () => {
-        const res = await fetch(`${BASE}/signup-code`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pass }),
-        });
-        assert(res.ok, "Should succeed for correct admin pass");
-        const data = await res.json();
-        assertEquals(typeof data.code, "string");
-        signupCode = data.code;
+        signupCode = await colle.genSignupCode(pass);
+        assertEquals(typeof signupCode, "string");
     });
 
     await t.step(
         "generate signup code with wrong pass should fail",
         async () => {
-            const res = await fetch(`${BASE}/signup-code`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ pass: "not" }),
-            });
-            assert(!res.ok, "Should fail for wrong admin pass");
-            const data = await res.json();
-            assert(/invalid|missing/.test(data.message?.toLowerCase()));
+            try {
+                await colle.genSignupCode("not");
+                assert(false, "Should throw for wrong admin pass");
+            } catch (err) {
+                assert(
+                    /invalid or missing admin password/i.test(
+                        JSON.stringify(err),
+                    ),
+                    "Should throw correct error",
+                );
+            }
         },
     );
 
     await t.step("Signup with correct code should work", async () => {
-        const res = await fetch(`${BASE}/sign-up`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: testUsername,
-                password: testPassword,
-                code: signupCode,
-            }),
-        });
-        const data = await res.json();
-        assert(res.ok, `Signup should succeed: ${JSON.stringify(data)}`);
-        assertEquals(data.message, "ok");
-    });
-
-    await t.step("Signup with incorrect code should fail", async () => {
-    const res = await fetch(`${BASE}/sign-up`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            username: "fail_user",
-            password: "fail_password",
-            code: "WRONGCODE",
-        }),
-    });
-    const data = await res.json();
-    assert(!res.ok, "Signup should fail with incorrect code");
-    assert(
-        (data.message || "").toLowerCase().includes("signup code"),
-        `Expected error about signup code, got: ${JSON.stringify(data)}`
-    );
-});
-
-    await t.step("Signin should succeed", async () => {
-        {
-            const res = await fetch(`${BASE}/sign-in`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: testUsername,
-                    password: testPassword,
-                }),
-            });
-            const data = await res.json();
-            assert(res.ok, `Sign in must succeed: ${JSON.stringify(data)}`);
-            assertMatch(data.token, /^[\w-]+\.[\w-]+\.[\w-]+$/);
-            jwt = data.token;
+        try {
+            await colle.signUp(testUsername, testPassword, signupCode);
+        } catch {
+            assert(false, "Signup failed");
         }
     });
 
+    await t.step("Signup with incorrect code should fail", async () => {
+        try {
+            await colle.signUp("fail_user", "fail_password", "WRONGCODE");
+            assert(false, "Signup should fail with incorrect code");
+        } catch (err) {
+            assert(
+                /signup code does not exist/i.test(JSON.stringify(err)),
+                `Expected error about signup code, got: ${JSON.stringify(err)}`,
+            );
+        }
+    });
+
+    await t.step("Signin should succeed", async () => {
+        await colle.signIn(testUsername, testPassword);
+        jwt = colle.getToken()!;
+        assertMatch(jwt ?? "", /^[\w-]+\.[\w-]+\.[\w-]+$/);
+    });
+
     await t.step("Uploading files should succeed", async () => {
-        const fileBytes = await Deno.readFile("/etc/hosts");
-        const form = new FormData();
-        form.append("contents", new Blob([fileBytes]), "hosts.txt");
-        const res = await fetch(`${BASE}/file`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${jwt}`,
-            },
-            body: form,
-        });
-        const data = await res.json();
-        assert(res.ok, `File upload must succeed: ${JSON.stringify(data)}`);
-        assert(typeof data.uuid === "string");
-        fileUuid = data.uuid;
+        const file = await Deno.readTextFile("/etc/hosts");
+        fileUuid = await colle.upload(file, "text/plain", { name: "hosts.txt" });
+        assert(typeof fileUuid === "string");
     });
 
     await t.step("Listing files should succeed", async () => {
-        const res = await fetch(`${BASE}/files`, {
-            headers: { "Authorization": `Bearer ${jwt}` },
-        });
-        assert(res.ok, "List files should succeed");
-        const files = await res.json();
+        const files = await colle.listFiles();
+        assert(Array.isArray(files));
         assert(
             files.some((f: any) => f.uuid === fileUuid),
             `Should include uploaded file ${fileUuid}`,
@@ -133,19 +94,20 @@ Deno.test("colle api tests", async (t) => {
     });
 
     await t.step("GET file metadata", async () => {
-        const res = await fetch(`${BASE}/file/${fileUuid}`, {
-            headers: { "Authorization": `Bearer ${jwt}` },
-        });
-        assert(res.ok, "GET file should succeed");
-        const file = await res.json();
+        const file: Record<string, any> = await colle.getFile(fileUuid);
         assertEquals(file.uploader, testUsername);
     });
 
     await t.step("GET file with missing UUID should fail", async () => {
-        const res = await fetch(`${BASE}/file`);
-        assert(!res.ok, "Should fail");
-        const data = await res.json();
-        assert(data.message?.toLowerCase().includes("uuid"));
+        try {
+            await colle.getFile("");
+        } catch (err) {
+            assert(
+                `${err}`.toLowerCase().includes("uuid"),
+                "Message should be about incorrect UUID",
+            );
+            assert(false, "Getting file with missing UUID should fail");
+        }
     });
 
     await t.step("Downloading file should work", async () => {
@@ -156,17 +118,10 @@ Deno.test("colle api tests", async (t) => {
     });
 
     await t.step("Delete file should work", async () => {
-        const res = await fetch(`${BASE}/file`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${jwt}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ uuid: fileUuid }),
-        });
-        const data = await res.json();
-        assert(res.ok, JSON.stringify(data));
-        assertEquals(data.message, "ok");
+        await colle.deleteFile(fileUuid);
+        // Confirm delete by listing again
+        const files = await colle.listFiles();
+        assert(!files.some((f: any) => f.uuid === fileUuid), "File should be deleted");
     });
 
     ac.abort();
