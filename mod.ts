@@ -12,7 +12,7 @@ if (import.meta.main) {
     const keyEntry = await kv.get<ArrayBuffer>(["crypto-key"]);
     let cryptoKey = keyEntry.value;
     if (!cryptoKey) {
-        console.log("Generating new key...");
+        console.info("Generating new key...");
         const key = await crypto.subtle.generateKey(
             { name: "HMAC", hash: "SHA-512" },
             true,
@@ -44,7 +44,7 @@ if (import.meta.main) {
             Deno.exit(1);
         }
 
-        console.log("Listening on port", port);
+        console.info("Listening on port", port);
     });
 }
 

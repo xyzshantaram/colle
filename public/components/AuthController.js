@@ -46,7 +46,7 @@ export const AuthController = async (client) => {
         wrapperVisible = !wrapperVisible;
         if (store.value) {
             localStorage.removeItem('cached-token');
-            window.location.reload();
+            globalThis.location.reload();
         }
     }
 
@@ -74,7 +74,7 @@ export const AuthController = async (client) => {
         }
     }
     catch {
-        console.log('Authing with cached token failed, proceeding silently...');
+        console.error('Authing with cached token failed, proceeding silently...');
     }
 
     form.onsubmit = async (e) => {
