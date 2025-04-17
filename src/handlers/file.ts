@@ -10,20 +10,18 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
     app.post(
         "/file",
         checkToken(cryptoKey),
-        async ({ response, state, body, request }) => {
+        async ({ response, state, request }) => {
+            const body = await request.json();
             const username = state.user?.username;
             if (!username) return error(response)("Unauthorized", 401);
             const uuid = crypto.randomUUID();
             const type = request.headers.get("Content-Type");
-            console.log(22, "content-type", type);
-            console.log(body);
             if (!type) {
                 return error(response)(
                     "Content type of file must be specified!",
                 );
             }
-            const metadata = body.metadata;
-            console.log(29, "content-type", metadata);
+            const metadata = JSON.stringify(body.metadata);
 
             await kv.set(["files", uuid], {
                 uploader: username,
@@ -32,7 +30,6 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
                 type,
             });
 
-            console.log(38, "success");
             return { uuid };
         },
     );
@@ -47,13 +44,12 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
             if (!body.uuid) return error(response)("UUID must be specified!");
             const { value: file } = await kv.get<FileRecord>([
                 "files",
-                username,
                 body.uuid,
             ]);
             if (!file || file.uploader !== username) {
                 return error(response)("File not found.", 404);
             }
-            await kv.delete(["files", username, body.uuid]);
+            await kv.delete(["files", body.uuid]);
             return { message: "ok" };
         },
     );
@@ -62,11 +58,11 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         return error(response)("UUID must be specified!");
     });
 
-    const getFile = async (username: string, uuid: string) => {
+    const getFile = async (uuid: string) => {
         if (!uuid) throw "UUID must be specified!";
+        kv.list({ start: ["files"], end: [] });
         const { value: file } = await kv.get<FileRecord>([
             "files",
-            username,
             uuid,
         ]);
         if (!file) throw "No such file.";
@@ -78,31 +74,28 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
 
     app.get(
         "/file/:uuid",
-        checkToken(cryptoKey),
-        async ({ params, state, response }) => {
+        async ({ params, response }) => {
             try {
-                const username = state.user?.username;
-                if (!username) return error(response)("Unauthorized", 401);
-                return await getFile(username, params.uuid);
+                return await getFile(params.uuid);
             } catch (s) {
-                return error(response)(`${s}`, 400);
+                if (s instanceof Error) {
+                    return error(response)(s.message, 400);
+                }
+                return error(response)("Unknown error fetching file metadata.", 400);
             }
         },
     );
 
     app.get("/view/:uuid", async ({ params, response }) => {
-        for await (const entry of kv.list<FileRecord>({ prefix: ["files"] })) {
-            if (entry.key[2] === params.uuid) {
-                const file = entry.value;
-                const isImage = file.type.startsWith("image");
-                return response
-                    .header("Content-Type", isImage ? file.type : "text/plain")
-                    .send(
-                        isImage ? decodeBase64(file.data.split(",")[1]) : file.data,
-                    );
-            }
-        }
-        response.status(404).html("File not found");
+        const entry = await kv.get<FileRecord>(["files", params.uuid]);
+        if (!entry.value) return error(response)("File not found", 404);
+        const file = entry.value;
+        const isImage = file.type.startsWith("image");
+        return response
+            .header("Content-Type", isImage ? file.type : "text/plain")
+            .send(
+                isImage ? decodeBase64(file.data.split(",")[1]) : file.data,
+            );
     });
 
     app.get("/files", checkToken(cryptoKey), async ({ state, response }) => {
@@ -110,11 +103,13 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         if (!username) return error(response)("Unauthorized", 401);
         const files = [];
         for await (
-            const entry of kv.list<FileRecord>({ prefix: ["files", username] })
+            const entry of kv.list<FileRecord>({ prefix: ["files"] })
         ) {
+            if (entry.value.uploader !== username) continue;
+            const [, uuid] = entry.key;
             files.push({
                 ...entry.value,
-                uuid: entry.key[2],
+                uuid,
                 data: undefined,
                 metadata: JSON.parse(entry.value.metadata ?? "null"),
             });

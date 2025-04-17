@@ -1,3 +1,5 @@
+/** @import { FileRecord } from './types.ts'; */
+
 /**
  * Colle pastebin client class.
  */
@@ -76,10 +78,10 @@ export class Colle {
     /**
      * Gets a file from Colle.
      * @param {string} uuid - The UUID of the file to retrieve.
-     * @returns {Promise<object>} A promise that resolves with the file info. Available
+     * @returns {Promise<FileRecord>} A promise that resolves with the file info. Available
      * keys: `metadata` (optional), `type` (the content type of the file), `contents`
      * (the file contents), and `uploader` (the username of the uploader).
-     * @throws {object} Throws an object with an error message if the instance has
+     * @throws {any} Throws an object with an error message if the instance has
      * not been authed with signIn().
      */
     async getFile(uuid) {
@@ -142,15 +144,12 @@ export class Colle {
      */
     async upload(contents, type, metadata) {
         if (!this.token) throw { message: "Not authed!" };
-        const data = new FormData();
-        data.set('contents', contents);
-        data.set('type', type);
-        data.set('metadata', JSON.stringify(metadata));
         const res = await fetch(this.makeUrl("/file"), {
             method: "POST",
-            body: data,
+            body: JSON.stringify({ contents, metadata }),
             headers: {
                 Authorization: "Bearer " + this.token,
+                'Content-Type': type
             }
         }).then(res => res.json());
 
