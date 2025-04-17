@@ -1,19 +1,16 @@
 import { Handler } from "@nhttp/nhttp";
 import * as jwt from "@zaubrik/djwt";
+import { error } from "../utils/error.ts";
 
 export const checkToken = (cryptoKey: CryptoKey): Handler => async (rev, next) => {
     const token = rev.headers.get("Authorization");
     if (!token) {
-        return rev.response.status(401).json({
-            message: "Missing auth token.",
-        });
+        return error(rev.response)("Missing auth token", 401);
     }
 
     const parts = token.split(" ");
     if (!parts[1]) {
-        return rev.response.status(401).json({
-            message: 'Token format: "Bearer <token>"',
-        });
+        return error(rev.response)("Token format: 'Bearer <token>'", 401);
     }
 
     try {
@@ -22,8 +19,6 @@ export const checkToken = (cryptoKey: CryptoKey): Handler => async (rev, next) =
         return next();
     } catch (e) {
         console.error(e);
-        return rev.response.status(401).json({
-            message: "Missing or expired token",
-        });
+        return error(rev.response)("Missing or expired token", 401);
     }
 };
