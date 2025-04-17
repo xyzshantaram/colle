@@ -2,7 +2,6 @@ import { error } from "../utils/error.ts";
 import { decodeBase64 } from "@std/encoding";
 import { NHttp } from "@nhttp/nhttp";
 import { ColleOptions, FileRecord } from "../types.ts";
-import { upload } from "../middleware/upload.ts";
 import { checkToken } from "../middleware/auth.ts";
 
 export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
@@ -11,25 +10,29 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
     app.post(
         "/file",
         checkToken(cryptoKey),
-        upload,
         async ({ response, state, body, request }) => {
             const username = state.user?.username;
             if (!username) return error(response)("Unauthorized", 401);
             const uuid = crypto.randomUUID();
             const type = request.headers.get("Content-Type");
+            console.log(22, "content-type", type);
+            console.log(body);
             if (!type) {
                 return error(response)(
                     "Content type of file must be specified!",
                 );
             }
             const metadata = body.metadata;
+            console.log(29, "content-type", metadata);
 
-            await kv.set(["files", username, uuid], {
+            await kv.set(["files", uuid], {
                 uploader: username,
-                data: body.get("contents"),
+                data: body.contents,
                 metadata,
                 type,
             });
+
+            console.log(38, "success");
             return { uuid };
         },
     );
@@ -95,9 +98,7 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
                 return response
                     .header("Content-Type", isImage ? file.type : "text/plain")
                     .send(
-                        isImage
-                            ? decodeBase64(file.data.split(",")[1])
-                            : file.data,
+                        isImage ? decodeBase64(file.data.split(",")[1]) : file.data,
                     );
             }
         }
