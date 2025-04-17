@@ -1,9 +1,9 @@
 import { createApp } from "./src/app.ts";
-import { lmdb } from "./src/deps.ts";
+import lmdb from "lmdb";
 
 if (import.meta.main) {
     const db = lmdb.open({
-        path: './colle.lmdb',
+        path: "./colle.lmdb",
         compression: true,
     });
 
@@ -13,17 +13,17 @@ if (import.meta.main) {
         Deno.exit(1);
     }
 
-    let cryptoKey = db.get(['crypto-key']);
+    let cryptoKey = db.get(["crypto-key"]);
     if (!cryptoKey) {
         console.log("Generating new key...");
         const key = await crypto.subtle.generateKey(
             { name: "HMAC", hash: "SHA-512" },
             true,
-            ["sign", "verify"]
+            ["sign", "verify"],
         );
 
-        cryptoKey = await crypto.subtle.exportKey('raw', key);
-        await db.put(['crypto-key'], cryptoKey);
+        cryptoKey = await crypto.subtle.exportKey("raw", key);
+        await db.put(["crypto-key"], cryptoKey);
     }
 
     const env = (Deno.env.get("COLLE_ENV") || "PROD") as ("PROD" | "DEBUG");
@@ -33,14 +33,14 @@ if (import.meta.main) {
         db,
         pass,
         cryptoKey: await crypto.subtle.importKey(
-            'raw',
+            "raw",
             cryptoKey,
             { name: "HMAC", hash: "SHA-512" },
             true,
-            ["sign", "verify"]
-        )
+            ["sign", "verify"],
+        ),
     });
-    const port = parseInt(Deno.env.get("COLLE_PORT") || '3000');
+    const port = parseInt(Deno.env.get("COLLE_PORT") || "3000");
 
     app.listen(port, (err) => {
         if (err) {
@@ -49,7 +49,7 @@ if (import.meta.main) {
         }
 
         console.log("Listening on port", port);
-    })
+    });
 }
 
 import { Colle } from "./src/Colle.js";

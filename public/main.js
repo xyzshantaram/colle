@@ -55,7 +55,7 @@ const init = async () => {
     const client = new Colle();
     const root = document.querySelector('#root');
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const view = params.get('view');
 
     const [codegen] = setupCodeGenerator(client);

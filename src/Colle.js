@@ -64,7 +64,7 @@ export class Colle {
      * @throws {object} Throws an object with an error message if code creation fails.
      */
     async genSignupCode(pass) {
-        const res = await fetch("/signup-code", {
+        const res = await fetch(this.makeUrl("/signup-code"), {
             method: "POST",
             body: JSON.stringify({ pass })
         }).then(v => v.json());
@@ -96,7 +96,7 @@ export class Colle {
      * @throws {object} Throws the response object if there is an error.
      */
     async signIn(username, password) {
-        const res = await fetch("/sign-in", {
+        const res = await fetch(this.makeUrl("/sign-in"), {
             method: "POST",
             body: JSON.stringify({ username, password })
         }).then(v => v.json());
@@ -120,7 +120,7 @@ export class Colle {
         if (!username || !password || !code) throw {
             'message': "Enter your username, password, and a signup code."
         };
-        const res = await fetch("/sign-up", {
+        const res = await fetch(this.makeUrl("/sign-up"), {
             method: "POST",
             body: JSON.stringify({ username, password, code })
         }).then(v => v.json());
@@ -142,12 +142,15 @@ export class Colle {
      */
     async upload(contents, type, metadata) {
         if (!this.token) throw { message: "Not authed!" };
+        const data = new FormData();
+        data.set('contents', contents);
+        data.set('type', type);
+        data.set('metadata', JSON.stringify(metadata));
         const res = await fetch(this.makeUrl("/file"), {
             method: "POST",
-            body: JSON.stringify({ contents, metadata }),
+            body: data,
             headers: {
                 Authorization: "Bearer " + this.token,
-                'Content-Type': type
             }
         }).then(res => res.json());
 
