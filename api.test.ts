@@ -2,9 +2,11 @@ import { assert, assertEquals, assertMatch } from "@std/assert";
 import { delay } from "@std/async";
 import { createApp } from "./src/app.ts";
 import { Colle } from "./src/Colle.js";
+import { FileRecord } from "./src/types.ts";
 
 Deno.test("colle api tests (with client)", async (t) => {
     const tempKvPath = await Deno.makeTempFile();
+    console.info("using kv path", tempKvPath);
     const kv = await Deno.openKv(tempKvPath);
 
     const pass = "test_admin_pass_" + crypto.randomUUID();
@@ -12,7 +14,7 @@ Deno.test("colle api tests (with client)", async (t) => {
     const testPassword = "testing";
     const env = "DEBUG";
     const PORT = 3001;
-    const BASE = `http://localhost:${PORT}`;
+    const BASE = `http://127.0.0.1:${PORT}`;
 
     const key = await crypto.subtle.generateKey(
         { name: "HMAC", hash: "SHA-512" },
@@ -79,7 +81,7 @@ Deno.test("colle api tests (with client)", async (t) => {
     });
 
     await t.step("Uploading files should succeed", async () => {
-        const file = await Deno.readTextFile("/etc/hosts");
+        const file = await Deno.readTextFile("./README.md");
         fileUuid = await colle.upload(file, "text/plain", { name: "hosts.txt" });
         assert(typeof fileUuid === "string");
     });
@@ -88,25 +90,25 @@ Deno.test("colle api tests (with client)", async (t) => {
         const files = await colle.listFiles();
         assert(Array.isArray(files));
         assert(
-            files.some((f: any) => f.uuid === fileUuid),
+            files.some((f: FileRecord & { uuid: string }) => f.uuid === fileUuid),
             `Should include uploaded file ${fileUuid}`,
         );
     });
 
     await t.step("GET file metadata", async () => {
-        const file: Record<string, any> = await colle.getFile(fileUuid);
+        const file: FileRecord = await colle.getFile(fileUuid);
         assertEquals(file.uploader, testUsername);
     });
 
     await t.step("GET file with missing UUID should fail", async () => {
         try {
             await colle.getFile("");
+            assert(false, "Getting file with missing UUID should fail");
         } catch (err) {
             assert(
-                `${err}`.toLowerCase().includes("uuid"),
+                JSON.stringify(err).toLowerCase().includes("uuid must be specified"),
                 "Message should be about incorrect UUID",
             );
-            assert(false, "Getting file with missing UUID should fail");
         }
     });
 
@@ -114,14 +116,17 @@ Deno.test("colle api tests (with client)", async (t) => {
         const res = await fetch(`${BASE}/view/${fileUuid}`);
         assert(res.ok);
         const text = await res.text();
-        assert(text.length > 0, "Should return file content");
+        assert(text.includes("dead-simple pastebin service"), "Should return file content");
     });
 
     await t.step("Delete file should work", async () => {
         await colle.deleteFile(fileUuid);
         // Confirm delete by listing again
         const files = await colle.listFiles();
-        assert(!files.some((f: any) => f.uuid === fileUuid), "File should be deleted");
+        assert(
+            !files.some((f: FileRecord & { uuid: string }) => f.uuid === fileUuid),
+            "File should be deleted",
+        );
     });
 
     ac.abort();

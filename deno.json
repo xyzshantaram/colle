@@ -9,6 +9,12 @@
         "x/random": "https://deno.land/x/random@v1.1.2/Random.js"
     },
     "fmt": {
-        "indentWidth": 4
+        "indentWidth": 4,
+        "lineWidth": 100
+    },
+    "tasks": {
+        "test": "deno test --allow-env=LOCAL,DENO_DIR,XDG_CACHE_HOME,HOME --allow-write=/tmp --allow-read --allow-ffi --allow-net --unstable-kv api.test.ts",
+        "check": "deno check src/**/*.ts",
+        "lint": "deno lint src/**/*.ts"
     }
 }
