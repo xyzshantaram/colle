@@ -1,11 +1,7 @@
 import { createApp } from "./src/app.ts";
-import lmdb from "lmdb";
 
 if (import.meta.main) {
-    const db = lmdb.open({
-        path: "./colle.lmdb",
-        compression: true,
-    });
+    const kv = await Deno.openKv();
 
     const pass = Deno.env.get("COLLE_ADMIN_PASS");
     if (!pass) {
@@ -13,7 +9,8 @@ if (import.meta.main) {
         Deno.exit(1);
     }
 
-    let cryptoKey = db.get(["crypto-key"]);
+    const keyEntry = await kv.get<ArrayBuffer>(["crypto-key"]);
+    let cryptoKey = keyEntry.value;
     if (!cryptoKey) {
         console.log("Generating new key...");
         const key = await crypto.subtle.generateKey(
@@ -21,16 +18,15 @@ if (import.meta.main) {
             true,
             ["sign", "verify"],
         );
-
         cryptoKey = await crypto.subtle.exportKey("raw", key);
-        await db.put(["crypto-key"], cryptoKey);
+        await kv.set(["crypto-key"], cryptoKey);
     }
 
     const env = (Deno.env.get("COLLE_ENV") || "PROD") as ("PROD" | "DEBUG");
 
     const app = await createApp({
         env,
-        db,
+        kv,
         pass,
         cryptoKey: await crypto.subtle.importKey(
             "raw",
