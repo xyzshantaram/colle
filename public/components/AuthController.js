@@ -22,14 +22,17 @@ const SignupLink = (state) => cf.nu('a.signup-link')
     .on('click', () => state.update(v => v === 'signup' ? 'signin' : 'signup'))
     .done();
 
-const SignupForm = (client, children, setSignedIn) => cf.nu('form.auth-form')
+const SignupForm = (client, children, setSignedIn, state) => cf.nu('form.auth-form')
     .children(children)
-    .html`<cf-slot name="usernameField"></cf-slot>
-    <cf-slot name="passwordField"></cf-slot>
-    <cf-slot name='signupLink'></cf-slot>
-    <cf-slot name="signupField"></cf-slot>
-    <cf-slot name="submitField"></cf-slot>`
-    .render(({ formState }, { elt }) => { elt.classList.toggle('hidden', formState === 'hidden') })
+    .html``
+    .deps({ state })
+    .render(({ state }, { b }) => b.html`<cf-slot name="usernameField"></cf-slot>
+        <cf-slot name="passwordField"></cf-slot>
+        <cf-slot name='signupLink'></cf-slot>
+        <cf-slot name="signupField"></cf-slot>
+        <cf-slot name="submitField"></cf-slot>`
+        .cls('hidden', state === 'hidden')
+    )
     .on('submit', async function (e) {
         e.preventDefault();
         const data = new FormData(this);
@@ -92,7 +95,7 @@ export const AuthController = async (client) => {
     const [controller] = cf.nu('div#auth-controller')
         .deps({ formState })
         .children({
-            form: SignupForm(client, children, setSignedIn),
+            form: SignupForm(client, children, setSignedIn, formState),
             indicator: AuthIndicator(username, formState, signOut)
         })
         .html`
