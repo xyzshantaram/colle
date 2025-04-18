@@ -11,9 +11,9 @@ export const Field = ({ name, type = 'text', label, classes = [], value, elt }) 
     for (const c of classes) builder.cls(c);
     if (type === 'submit') builder.cls('submit-group');
 
-    if (!elt) return builder.html(labelHtml + inputHtml).ref();
+    if (!elt) return builder.html(labelHtml + inputHtml).gimme('input').done();
 
-    const built = builder.ref();
+    const [built] = builder.done();
     cf.insert(elt, { into: built });
-    return built;
+    return [built];
 }
