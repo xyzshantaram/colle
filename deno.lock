@@ -1,25 +1,40 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@deno/kv-utils@~0.1.3": "0.1.3",
     "jsr:@denosaurs/plug@^1.0.6": "1.0.6",
     "jsr:@felix/bcrypt@^1.0.5": "1.0.5",
+    "jsr:@kitsonk/kv-toolbox@~0.27.4": "0.27.4",
     "jsr:@nhttp/nhttp@^2.0.2": "2.0.2",
     "jsr:@std/assert@0.221": "0.221.0",
+    "jsr:@std/assert@1": "1.0.12",
     "jsr:@std/assert@^1.0.12": "1.0.12",
     "jsr:@std/async@^1.0.12": "1.0.12",
+    "jsr:@std/bytes@1": "1.0.5",
+    "jsr:@std/bytes@^1.0.3": "1.0.5",
+    "jsr:@std/crypto@1": "1.0.4",
     "jsr:@std/encoding@0.221": "0.221.0",
     "jsr:@std/encoding@0.224.0": "0.224.0",
+    "jsr:@std/encoding@1": "1.0.9",
+    "jsr:@std/encoding@^1.0.5": "1.0.9",
     "jsr:@std/encoding@^1.0.9": "1.0.9",
     "jsr:@std/fmt@0.221": "0.221.0",
     "jsr:@std/fs@0.221": "0.221.0",
     "jsr:@std/internal@^1.0.6": "1.0.6",
+    "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/path@0.221": "0.221.0",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@types/node@*": "22.12.0",
-    "npm:macrolight@^1.5.0": "1.5.0",
     "npm:marked@^15.0.8": "15.0.8"
   },
   "jsr": {
+    "@deno/kv-utils@0.1.3": {
+      "integrity": "f3877510f82ce78a1946f6fc9727393d44421928c971572c18d90f9206448e98",
+      "dependencies": [
+        "jsr:@std/bytes@^1.0.3",
+        "jsr:@std/encoding@^1.0.5"
+      ]
+    },
     "@denosaurs/plug@1.0.6": {
       "integrity": "6cf5b9daba7799837b9ffbe89f3450510f588fafef8115ddab1ff0be9cb7c1a7",
       "dependencies": [
@@ -33,6 +48,17 @@
       "integrity": "c8312e10cfda0e34c06c0d906667a0c602b472b7c64c75cfdcb44b934b885836",
       "dependencies": [
         "jsr:@denosaurs/plug"
+      ]
+    },
+    "@kitsonk/kv-toolbox@0.27.4": {
+      "integrity": "71c59db174e73d618e8ef51ba8ac1ba769725f6ec0a52c2c09de295c98b3b0a8",
+      "dependencies": [
+        "jsr:@deno/kv-utils",
+        "jsr:@std/assert@1",
+        "jsr:@std/bytes@1",
+        "jsr:@std/crypto",
+        "jsr:@std/encoding@1",
+        "jsr:@std/media-types"
       ]
     },
     "@nhttp/nhttp@2.0.2": {
@@ -49,6 +75,12 @@
     },
     "@std/async@1.0.12": {
       "integrity": "d1bfcec459e8012846fe4e38dfc4241ab23240ecda3d8d6dfcf6d81a632e803d"
+    },
+    "@std/bytes@1.0.5": {
+      "integrity": "4465dd739d7963d964c809202ebea6d5c6b8e3829ef25c6a224290fbb8a1021e"
+    },
+    "@std/crypto@1.0.4": {
+      "integrity": "cee245c453bd5366207f4d8aa25ea3e9c86cecad2be3fefcaa6cb17203d79340"
     },
     "@std/encoding@0.221.0": {
       "integrity": "d1dd76ef0dc5d14088411e6dc1dede53bf8308c95d1537df1214c97137208e45"
@@ -72,6 +104,9 @@
     "@std/internal@1.0.6": {
       "integrity": "9533b128f230f73bd209408bb07a4b12f8d4255ab2a4d22a1fd6d87304aca9a4"
     },
+    "@std/media-types@1.1.0": {
+      "integrity": "c9d093f0c05c3512932b330e3cc1fe1d627b301db33a4c2c2185c02471d6eaa4"
+    },
     "@std/path@0.221.0": {
       "integrity": "0a36f6b17314ef653a3a1649740cc8db51b25a133ecfe838f20b79a56ebe0095",
       "dependencies": [
@@ -94,9 +129,6 @@
     },
     "detect-libc@2.0.3": {
       "integrity": "sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw=="
-    },
-    "macrolight@1.5.0": {
-      "integrity": "sha512-L78V1xlXFn7Ngww41Bt0QbvtlUGsKgaQhklHiYZutuuwnRo1REZFiQC1MeLRpQfywFlsTMoAHJ/Cpfd2E2wdzw=="
     },
     "marked@15.0.8": {
       "integrity": "sha512-rli4l2LyZqpQuRve5C0rkn6pj3hT8EWPC+zkAxFTAJLxRbENfTAhEQq9itrmf1Y81QtAX5D/MYlGlIomNgj9lA=="
@@ -165,6 +197,8 @@
     "https://deno.land/x/random@v1.1.2/Random.js": "cb23f3cdd4a453c61585c4ab4e5370eeb1786c9a75daaa7522d41ed4f056079c",
     "https://esm.sh/campfire.js@4.0.0-alpha2": "65b14a3a9858b43dd28df26c520350c7ec0fa26a9057e197155067fdc2e9d87f",
     "https://esm.sh/campfire.js@4.0.0-alpha2/denonext/campfire.mjs": "23e36311954aa4e2bd68e37d025cee52637c136bc427234d3ef098d735731d75",
+    "https://esm.sh/campfire.js@4.0.0-rc17": "177b43ff1feee151898fb6ad093a743ff9e4cb556fc650f1b452f508deac9252",
+    "https://esm.sh/campfire.js@4.0.0-rc17/denonext/campfire.mjs": "2be9834a1fc75dcacfd305795a24859c0cc597480fe195834e855708fd7567b0",
     "https://esm.sh/cf-alert@0.4.1": "dc9b8033d0af23b7de9ce6c5a94bca7d9f05822af56cb39e4500d3fe593e3314",
     "https://esm.sh/cf-alert@0.4.1/denonext/cf-alert.mjs": "958e3ee68fdd5ac54d6ee738e94c232dbaa7edc5e1d441262ee7747d49eb2039",
     "https://esm.sh/macrolight@1.5.0": "503cef0295f695b468d29903042860d606fb178d6afc59aefb604c8fde340a28",
@@ -173,12 +207,12 @@
   "workspace": {
     "dependencies": [
       "jsr:@felix/bcrypt@^1.0.5",
+      "jsr:@kitsonk/kv-toolbox@~0.27.4",
       "jsr:@nhttp/nhttp@^2.0.2",
       "jsr:@std/assert@^1.0.12",
       "jsr:@std/async@^1.0.12",
       "jsr:@std/encoding@^1.0.9",
       "jsr:@zaubrik/djwt@^3.0.2",
-      "npm:macrolight@^1.5.0",
       "npm:marked@^15.0.8"
     ]
   }
