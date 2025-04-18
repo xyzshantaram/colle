@@ -58,7 +58,7 @@ export const Uploader = (client, username) => {
     const fileData = cf.store({ value: {} });
 
     const [uploadName, filenameInput] = Field({ name: 'upload-filename', label: "Filename (optional)" });
-    console.log(uploadName, filenameInput);
+    const [uploadDesc, descInput] = Field({ name: 'upload-description', label: "Image description (optional)" });
     const textSubmit = SubmitButton('text', client, fileData);
     const imgSubmit = SubmitButton('img', client, fileData);
 
@@ -67,14 +67,13 @@ export const Uploader = (client, username) => {
             fileData.update({
                 contents: await blobToBase64(file),
                 type: file.type,
-                description: uploadDesc.value.trim(),
+                description: descInput.value.trim(),
                 isImg: true
             });
             elt.querySelector('.tab-button[data-tabname="Image"]').click();
         }
     }
 
-    const [uploadDesc] = Field({ name: 'upload-description', label: "Image description (optional)" });
     const [image] = ImageUpload(handleFileChange, fileData);
 
     const [elt, textarea] =
