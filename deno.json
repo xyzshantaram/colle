@@ -6,6 +6,8 @@
         "@std/async": "jsr:@std/async@^1.0.12",
         "@std/encoding": "jsr:@std/encoding@^1.0.9",
         "@zaubrik/djwt": "jsr:@zaubrik/djwt@^3.0.2",
+        "macrolight": "npm:macrolight@^1.5.0",
+        "marked": "npm:marked@^15.0.8",
         "x/random": "https://deno.land/x/random@v1.1.2/Random.js"
     },
     "fmt": {
