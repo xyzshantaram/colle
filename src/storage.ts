@@ -26,6 +26,10 @@ export async function saveFileRecord(
     return { uuid };
 }
 
+export async function getFileMeta(kv: ColleOptions["kv"], uuid: string) {
+    return await getMeta(kv, ["files", uuid]);
+}
+
 // Get a file record by UUID (merges meta and binary)
 export async function getFileRecord(
     kv: ColleOptions["kv"],
