@@ -179,6 +179,70 @@ ul {
     z-index: 0;
 }
 
+pre {
+    background-color: #eee;
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+    overflow-x: auto;
+}
+
+.table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.img-wrapper {
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.img-wrapper>img,
+.img-wrapper>video {
+    max-height: 60vh;
+    max-width: 100%;
+    object-fit: contain;
+    border: 2px solid #777777;
+    border-radius: 0.5rem;
+}
+
+.colle-heading-1 {
+    font-size: 2rem;
+}
+
+.colle-heading-2 {
+    font-size: 1.6rem;
+}
+
+.colle-heading-3 {
+    font-size: 1.4rem;
+}
+
+.colle-heading-4 {
+    font-size: 1.2rem;
+}
+
+.colle-heading-5,
+.colle-heading-6 {
+    font-size: 1rem;
+}
+
+[class^='colle-heading'] {
+    font-weight: bold;
+}
+
+.view-actions {
+    margin-bottom: 1rem;
+}
+
+.actions-separator {
+    color: grey;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
 .upload-img-wrapper {
     max-width: 100%;
     display: flex;
