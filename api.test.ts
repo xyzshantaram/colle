@@ -82,7 +82,7 @@ Deno.test("colle api tests (with client)", async (t) => {
 
     await t.step("Uploading files should succeed", async () => {
         const file = await Deno.readTextFile("./README.md");
-        fileUuid = await colle.upload(file, "text/plain", { name: "hosts.txt" });
+        fileUuid = await colle.upload(file, "text/plain", { name: "README.md" });
         assert(typeof fileUuid === "string");
     });
 
