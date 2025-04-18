@@ -3,11 +3,12 @@ import { delay } from "@std/async";
 import { createApp } from "./src/app.ts";
 import { Colle } from "./src/Colle.js";
 import { FileRecord } from "./src/types.ts";
+import { openKvToolbox } from "@kitsonk/kv-toolbox";
 
 Deno.test("colle api tests (with client)", async (t) => {
     const tempKvPath = await Deno.makeTempFile();
     console.info("using kv path", tempKvPath);
-    const kv = await Deno.openKv(tempKvPath);
+    const kv = await openKvToolbox({ path: tempKvPath });
 
     const pass = "test_admin_pass_" + crypto.randomUUID();
     const testUsername = "shantaram";
@@ -113,7 +114,7 @@ Deno.test("colle api tests (with client)", async (t) => {
     });
 
     await t.step("Downloading file should work", async () => {
-        const res = await fetch(`${BASE}/view/${fileUuid}`);
+        const res = await fetch(`${BASE}/contents/${fileUuid}`);
         assert(res.ok);
         const text = await res.text();
         assert(text.includes("dead-simple pastebin service"), "Should return file content");
