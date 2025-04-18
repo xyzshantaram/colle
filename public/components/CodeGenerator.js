@@ -4,8 +4,8 @@ import { Field } from "./Field.js";
 
 export const CodeGenerator = (client) => {
     const hidden = new cf.Store(true);
-    const password = Field({ name: 'cf-gen-password', type: 'password', label: 'Password' });
-    const submit = Field('cf-submit', 'submit');
+    const [password] = Field({ name: 'cf-gen-password', type: 'password', label: 'Password' });
+    const [submit] = Field({ name: 'cf-submit', type: 'submit' });
     const results = cf.nu('ul.results').ref();
 
     const [elt, form] = cf.nu('div#code-generator-wrapper.modal.hidden')
