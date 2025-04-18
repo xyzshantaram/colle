@@ -7,7 +7,7 @@ const PasteItem = (item, client) => {
         .gimme('.delete-item')
         .html`<div class=item-name>${name}</div>
         <ul>
-            <li><a class=view-item target="_blank" href="${client.makeUrl("/?view=" + item.uuid)}">View</a></li>
+            <li><a class=view-item target="_blank" href="${client.makeUrl("/view/" + item.uuid)}">View</a></li>
             <li><a class=delete-item href="javascript:void(0)">Delete</a></li>
         </ul>`
         .done();
