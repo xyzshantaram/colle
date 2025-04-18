@@ -21,21 +21,21 @@ const ImageUpload = (onChange, data) => {
            <img class=upload-img-preview>`
         .done();
 
-    data.on('update', ({ value }) => value.isImg && (img.src = value.contents));
+    data.on('update', async ({ value }) => value.isImg && (img.src = await blobToBase64(value.contents)));
     input.onchange = async _ => await onChange(input.files[0]);
 
     return [elt];
 }
 
 const handleUpload = async (client, fileData) => {
-    const { filename, type, description, contents, isImg } = fileData.current();
+    const { filename, description, contents, isImg } = fileData.current();
     console.log(fileData.current())
     const language = (!isImg) && filename && filename.includes('.')
         ? filename.split('.').at(-1) : undefined;
 
     fatal("Uploading, you will be redirected...", "Info");
 
-    const uuid = await client.upload(contents, type, {
+    const uuid = await client.upload(contents, {
         name: !isImg ? filename : undefined,
         language,
         description
@@ -62,10 +62,10 @@ export const Uploader = (client, username) => {
     const textSubmit = SubmitButton('text', client, fileData);
     const imgSubmit = SubmitButton('img', client, fileData);
 
-    const handleFileChange = async (file) => {
+    const handleFileChange = (file) => {
         if (file && ["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
             fileData.update({
-                contents: await blobToBase64(file),
+                contents: file,
                 type: file.type,
                 description: descInput.value.trim(),
                 isImg: true

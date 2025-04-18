@@ -7,16 +7,14 @@ export interface ColleOptions {
     env: "PROD" | "DEBUG";
 }
 
-// New: Holds only metadata (not contents)
 export interface FileMeta {
     uploader: string;
     type: string;
     metadata: Record<string, string | number | boolean>;
 }
 
-// Full record (includes contents as Uint8Array)
 export interface FileRecord extends FileMeta {
-    data: string;
+    data: Uint8Array;
 }
 
 export interface UserRecord {

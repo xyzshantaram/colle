@@ -134,23 +134,29 @@ export class Colle {
 
     /**
      * Uploads a file to Colle.
-     * @param {string} contents - The contents of the file to upload, either as plaintext or
-     * encoded as base64.
+     * @param {string|File} contents - The contents of the file to upload, either as plaintext or
+     * a File object.
      * @param {string} type - The content type of the file.
-     * @param {object} [metadata=undefined] - Any miscellaneous metadata you wish to include
+     * @param {Record<string, any>} [metadata=undefined] - Any miscellaneous metadata you wish to include
      * about the file. For example, syntax highlight language, or filename.
      * @returns {Promise<string>} A promise that resolves with the UUID of the uploaded file.
      * @throws {object} Throws an object with an error message if the upload fails.
      */
-    async upload(contents, type, metadata) {
+    async upload(contents, metadata) {
         if (!this.token) throw { message: "Not authed!" };
+
+        const formData = new FormData();
+        if (typeof contents === 'string' || contents instanceof File) {
+            formData.set('contents', contents);
+        }
+        formData.set("metadata", JSON.stringify(metadata || {}));
+
         const res = await fetch(this.makeUrl("/file"), {
             method: "POST",
-            body: JSON.stringify({ contents, metadata }),
             headers: {
-                Authorization: "Bearer " + this.token,
-                'Content-Type': type
-            }
+                Authorization: "Bearer " + this.token
+            },
+            body: formData,
         }).then(res => res.json());
 
         if (!res.uuid) throw res;

@@ -1,4 +1,3 @@
-import { decodeBase64 } from "@std/encoding";
 import { NHttp } from "@nhttp/nhttp";
 import { error } from "../utils/error.ts";
 import { ColleOptions } from "../types.ts";
@@ -7,6 +6,9 @@ import * as storage from "../storage.ts";
 import { getName, ViewTemplate } from "./view.ts";
 import { renderText } from "../utils/render.ts";
 
+const decoder = new TextDecoder("utf-8");
+const encoder = new TextEncoder();
+
 export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
     const { kv, cryptoKey } = opts;
 
@@ -14,18 +16,33 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         "/file",
         checkToken(cryptoKey),
         async ({ response, state, request }) => {
-            const body = await request.json();
+            const body = await request.formData();
             const username = state.user?.username;
             if (!username) return error(response)("Unauthorized", 401);
-            const type = request.headers.get("Content-Type");
-            if (!type) {
-                return error(response)("Content type of file must be specified!");
-            }
+            const rawContent = body.get("contents");
+            let type = "text/plain";
+
+            const asBlob: Uint8Array | null = await (() => {
+                if (rawContent instanceof File) {
+                    type = rawContent.type;
+                    return rawContent.bytes();
+                } else if (typeof rawContent === "string") {
+                    return Promise.resolve(encoder.encode(rawContent));
+                }
+                return null;
+            })();
+
+            const rawMeta = body.get("metadata");
+            const metadata = typeof rawMeta === "string" ? JSON.parse(rawMeta) : null;
+
+            if (!asBlob) return error(response)(`Invalid format for "contents"`, 400);
+            if (!rawMeta) return error(response)(`Invalid format for "metadata"`, 400);
+
             const { uuid } = await storage.saveFileRecord(kv, {
                 uploader: username,
-                data: body.contents,
-                metadata: body.metadata,
+                metadata,
                 type,
+                data: asBlob,
             });
             return { uuid };
         },
@@ -86,7 +103,7 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         const searchParams = new URLSearchParams(search || "");
         const hl = searchParams.get("hl");
         if (hl) ext = hl;
-        const contents = isImg ? undefined : renderText(ext, file.data);
+        const contents = isImg ? undefined : renderText(ext, decoder.decode(file.data));
 
         return response.status(200).html(ViewTemplate({
             file,
@@ -103,9 +120,7 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         const isImage = file.type.startsWith("image");
         return response
             .header("Content-Type", isImage ? file.type : "text/plain")
-            .send(
-                isImage ? decodeBase64(file.data.split(",")[1]) : file.data,
-            );
+            .send(file.data);
     });
 
     app.get("/files", checkToken(cryptoKey), async ({ state, response }) => {

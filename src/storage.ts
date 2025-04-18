@@ -1,8 +1,5 @@
 import { ColleOptions, FileMeta, FileRecord } from "./types.ts";
 
-const decoder = new TextDecoder("utf-8");
-const encoder = new TextEncoder();
-
 const getMeta = async (kv: ColleOptions["kv"], key: Deno.KvKey) => {
     const entry = await kv.get<FileMeta>(key);
     if (!entry.value) return null;
@@ -22,7 +19,7 @@ export async function saveFileRecord(
 ): Promise<{ uuid: string }> {
     const uuid = crypto.randomUUID();
     await kv.set(["files", uuid], { uploader, type, metadata });
-    await kv.setBlob(["contents", uuid], encoder.encode(data));
+    await kv.setBlob(["contents", uuid], data);
     return { uuid };
 }
 
@@ -39,7 +36,7 @@ export async function getFileRecord(
     if (!meta) return null;
     const data = await getContents(kv, ["contents", uuid]);
     if (!data) return null;
-    return { ...meta, data: decoder.decode(data) };
+    return { ...meta, data };
 }
 
 // Delete a file record by UUID (from both meta and contents)
