@@ -2,7 +2,7 @@ import { openKvToolbox } from "@kitsonk/kv-toolbox";
 import { createApp } from "./src/app.ts";
 
 if (import.meta.main) {
-    const kv = await openKvToolbox();
+    const kv = await openKvToolbox({ path: Deno.env.get("COLLE_DB_PATH") || "./colle.db" });
 
     const pass = Deno.env.get("COLLE_ADMIN_PASS");
     if (!pass) {
