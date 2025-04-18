@@ -1,8 +1,9 @@
 import { error } from "../utils/error.ts";
 import { decodeBase64 } from "@std/encoding";
 import { NHttp } from "@nhttp/nhttp";
-import { ColleOptions, FileRecord } from "../types.ts";
+import { ColleOptions } from "../types.ts";
 import { checkToken } from "../middleware/auth.ts";
+import * as storage from "../storage.ts";
 
 export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
     const { kv, cryptoKey } = opts;
@@ -14,22 +15,16 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
             const body = await request.json();
             const username = state.user?.username;
             if (!username) return error(response)("Unauthorized", 401);
-            const uuid = crypto.randomUUID();
             const type = request.headers.get("Content-Type");
             if (!type) {
-                return error(response)(
-                    "Content type of file must be specified!",
-                );
+                return error(response)("Content type of file must be specified!");
             }
-            const metadata = JSON.stringify(body.metadata);
-
-            await kv.set(["files", uuid], {
+            const { uuid } = await storage.saveFileRecord(kv, {
                 uploader: username,
                 data: body.contents,
-                metadata,
+                metadata: body.metadata,
                 type,
             });
-
             return { uuid };
         },
     );
@@ -42,14 +37,11 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
             const username = state.user?.username;
             if (!username) return error(response)("Unauthorized", 401);
             if (!body.uuid) return error(response)("UUID must be specified!");
-            const { value: file } = await kv.get<FileRecord>([
-                "files",
-                body.uuid,
-            ]);
+            const file = await storage.getFileRecord(kv, body.uuid);
             if (!file || file.uploader !== username) {
                 return error(response)("File not found.", 404);
             }
-            await kv.delete(["files", body.uuid]);
+            await storage.deleteFileRecord(kv, body.uuid);
             return { message: "ok" };
         },
     );
@@ -60,16 +52,9 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
 
     const getFile = async (uuid: string) => {
         if (!uuid) throw "UUID must be specified!";
-        kv.list({ start: ["files"], end: [] });
-        const { value: file } = await kv.get<FileRecord>([
-            "files",
-            uuid,
-        ]);
+        const file = await storage.getFileRecord(kv, uuid);
         if (!file) throw "No such file.";
-        return {
-            ...file,
-            metadata: JSON.parse(file.metadata || "null"),
-        };
+        return file;
     };
 
     app.get(
@@ -90,6 +75,10 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         const entry = await kv.get<FileRecord>(["files", params.uuid]);
         if (!entry.value) return error(response)("File not found", 404);
         const file = entry.value;
+
+    app.get("/contents/:uuid", async ({ params, response }) => {
+        const file = await storage.getFileRecord(kv, params.uuid);
+        if (!file) return error(response)("File not found", 404);
         const isImage = file.type.startsWith("image");
         return response
             .header("Content-Type", isImage ? file.type : "text/plain")
@@ -102,16 +91,11 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         const username = state.user?.username;
         if (!username) return error(response)("Unauthorized", 401);
         const files = [];
-        for await (
-            const entry of kv.list<FileRecord>({ prefix: ["files"] })
-        ) {
-            if (entry.value.uploader !== username) continue;
-            const [, uuid] = entry.key;
+        for await (const { uuid, record } of storage.listFileRecords(kv, { uploader: username })) {
             files.push({
-                ...entry.value,
+                ...record,
                 uuid,
                 data: undefined,
-                metadata: JSON.parse(entry.value.metadata ?? "null"),
             });
         }
         return files;
