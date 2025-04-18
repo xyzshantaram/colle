@@ -87,6 +87,24 @@ Deno.test("colle api tests (with client)", async (t) => {
         assert(typeof fileUuid === "string");
     });
 
+    await t.step("File metadata: upload with metadata should persist details", async () => {
+        const metaFileName = "meta.txt";
+        const metaDescription = "My meta test file";
+        const metaLanguage = "ts";
+
+        const metaFileUuid = await colle.upload("metadata-value", {
+            name: metaFileName,
+            description: metaDescription,
+            language: metaLanguage,
+        });
+
+        const uploaded = await colle.getFile(metaFileUuid);
+        assertEquals(typeof uploaded.metadata, "object");
+        assertEquals(uploaded.metadata.name, metaFileName);
+        assertEquals(uploaded.metadata.language, metaLanguage);
+        assertEquals(uploaded.metadata.description, metaDescription);
+    });
+
     await t.step("Uploading image files should succeed", async () => {
         const file = await Deno.readFile("./fixture.png");
         const uuid = await colle.upload(new File([file.buffer], "fixture.png"), {

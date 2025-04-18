@@ -34,10 +34,14 @@ const handleUpload = async (client, fileData) => {
 
     fatal("Uploading, you will be redirected...", "Info");
 
-    const uuid = await client.upload(contents, {
+    const metadata = {
         name: !isImg ? filename : undefined,
         language,
         description
+    };
+
+    const uuid = await client.upload(contents, {
+        metadata: JSON.stringify(metadata)
     });
 
     globalThis.location = client.makeUrl(`/view/${uuid}`);
