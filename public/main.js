@@ -2,42 +2,9 @@ import { Colle } from "https://deno.land/x/colle@2.1.1/src/Colle.js";
 import { AuthController } from "./components/AuthController.js";
 import { CodeGenerator } from "./components/CodeGenerator.js";
 import { Uploader } from "./components/Uploader.js";
-import { FileViewer } from "./components/FileViewer.js";
 import { MARIO_TAPS, listenForRhythm } from "./deps.js";
+import { initTabs } from "./tabs.js";
 
-export const initTabs = () => {
-    const tabWrappers = Array.from(document.querySelectorAll('.tabs'));
-    tabWrappers.forEach(wrapper => {
-        let tabSet = '';
-        if (!wrapper.getAttribute('data-tabset-name')) throw new Error('No tab set name provided');
-        else tabSet = wrapper.getAttribute('data-tabset-name');
-
-        const tabs =
-            Array.from(wrapper.querySelector(':scope>.tab-buttons').querySelectorAll('.tab-button'));
-        const tabBodies =
-            Array.from(wrapper.querySelectorAll(':scope>.tab-content'));
-
-        tabs.forEach((tab) => {
-            tab.onclick = () => {
-                tabs.forEach(t => t.classList.remove('selected'));
-                tab.classList.add('selected');
-                tabBodies.forEach(body => body.style.display = 'none');
-
-                const name = tab.getAttribute('data-tabname');
-                const content = document.querySelector(`.tab-content[data-tabname="${name}"]`);
-                if (content) {
-                    content.style.display = 'block';
-                }
-
-                globalThis.dispatchEvent(new CustomEvent('tabchange', {
-                    detail: { name, tabSet }
-                }));
-            }
-        })
-
-        tabs[0].click();
-    })
-}
 
 const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 let nextKonamiPos = 0;
@@ -55,18 +22,11 @@ const init = async () => {
     const client = new Colle();
     const root = document.querySelector('#root');
 
-    const params = new URLSearchParams(location.search);
-    const view = params.get('view');
-
     const [codegen] = setupCodeGenerator(client);
-    const [auth, authed] = await AuthController(client);
-    const [uploader] = Uploader(client, !view);
-    authed.on('update', v => uploader.classList.toggle('hidden', !v), true);
+    const [auth, username] = await AuthController(client);
+    const [uploader] = Uploader(client, username);
 
-    const [fileView] = await FileViewer(client, view);
-
-    root.append(auth, codegen, uploader, fileView);
-
+    root.append(auth, codegen, uploader);
     initTabs();
 }
 
