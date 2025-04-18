@@ -1,69 +1,74 @@
 import { cf, message } from "../deps.js";
+import { Field } from "./Field.js";
 import { UserPastes } from "./UserPastes.js";
+/** @import cf from "https://esm.sh/campfire.js@4.0.0-rc17" */
+
+const AuthIndicator = (username, state) => cf
+    .nu('.auth-indicator')
+    .deps({ username })
+    .on('click', () => state.current() === 'hidden' && state.update('signin'))
+    .render(({ username }, { b }) =>
+        b.content(username ? 'Not signed in.' : `Signed in as ${username}`)
+            .attr('title', username ? 'Sign out' : 'Sign in'))
+    .ref();
+
+const SignupLink = (state) => cf.nu('a.signup-link')
+    .deps({ state })
+    .attr('href', 'javascript:void(0)')
+    .render(({ state }) => state === 'signup' ? "Sign in" : "Don't have an account?")
+    .on('click', () => {
+        state.update(v => v === 'signup' ? 'signin' : 'signup');
+        console.log(state.current());
+    })
+    .done();
 
 export const AuthController = async (client) => {
-    const store = new cf.Store(false);
+    /** values: signup, signin, hidden */
+    const formState = cf.store({ value: 'signin' });
+    const username = cf.store({ value: null });
 
-    const [elt, indicator, form, signupLink, codeGroup, wrapper, codeField] = cf.nu('div#auth-controller', {
-        raw: true,
-        gimme: ['.auth-indicator', '.auth-form', '.signup-link', '.signup-code-group', '.auth-form-wrapper', '#auth-code'],
-        c: cf.html`
-        <div class='auth-indicator' tabindex=0>
-            Not signed in.
-        </div>
+    const [signupField] = cf.nu(Field({ name: 'signup-code', label: "Signup code" }))
+        .deps({ formState })
+        .render(({ formState }, { elt }) => {
+            elt.classList.toggle('hidden', formState === 'signin')
+        })
+        .done();
 
-        <div class="auth-form-wrapper hidden">
+    const signupLink = SignupLink(formState);
+
+    const children = {
+        signupField,
+        signupLink,
+        usernameField: Field({ name: 'username', label: 'Username' }),
+        passwordField: Field({ name: 'password', label: "Password", type: "Password" }),
+        submitField: Field({ name: 'submit', type: 'submit', value: "Submit" }),
+        indicator: AuthIndicator(username, formState)
+    }
+
+
+    const [controller, form] = cf.nu('div#auth-controller')
+        .gimme('.auth-form')
+        .deps({ formState })
+        .children(children)
+        .render(({ formState }, { b }) => b.html`
+        <cf-slot name="indicator"></cf-slot>
+        <div class="auth-form-wrapper ${formState === 'hidden' ? 'hidden' : ''}">
             <form class='auth-form'>
-                <div class=form-group>
-                    <label for=auth-username>Username</label>
-                    <input id=auth-username type=text name=username>
-                </div>
-                <div class=form-group>
-                    <label for=auth-password>Password</label>
-                    <input id=auth-password type=password name=password>
-                </div>
-                
-                <a class='signup-link' href="javascript:void(0)">
-                    Don't have an account?
-                </a>
-                <div class="form-group signup-code-group hidden">
-                    <label for=auth-code>Signup code</label>
-                    <input id=auth-code type=password name=code>
-                </div>
-
-                <div class="form-group submit-group">
-                    <input type=submit value=Submit>
-                </div>
+                <cf-slot name="usernameField"></cf-slot>
+                <cf-slot name="passwordField"></cf-slot>
+                <cf-slot name='signupLink'></cf-slot>
+                <cf-slot name="signupField"></cf-slot>
+                <cf-slot name="submitField"></cf-slot>
             </form>
         </div>
-        `
-    });
+        `)
+        .done();
 
-    let wrapperVisible = false;
 
-    indicator.onclick = () => {
-        wrapper.classList.toggle('hidden', wrapperVisible);
-        wrapperVisible = !wrapperVisible;
-        if (store.value) {
-            localStorage.removeItem('cached-token');
-            globalThis.location.reload();
-        }
-    }
-
-    let codeGroupVisible = false;
-    signupLink.onclick = () => {
-        codeGroup.classList.toggle("hidden", codeGroupVisible);
-        codeGroupVisible = !codeGroupVisible;
-        signupLink.innerHTML = codeGroupVisible ? "Sign in" : "Don't have an account?";
-        if (!codeGroupVisible) codeField.value = '';
-    }
-
-    const setSignedIn = async (username) => {
-        indicator.innerHTML = `Signed in as ${username}`;
-        store.update(true);
-        wrapper.remove();
-        indicator.title = 'Sign out';
-        elt.append(...await UserPastes(client));
+    const setSignedIn = async (user) => {
+        username.update(user);
+        formState.update('hidden');
+        controller.append(...await UserPastes(client));
     }
 
     try {
@@ -74,7 +79,7 @@ export const AuthController = async (client) => {
         }
     }
     catch {
-        console.error('Authing with cached token failed, proceeding silently...');
+        console.warn('Authing with cached token failed, proceeding silently...');
     }
 
     form.onsubmit = async (e) => {
@@ -87,7 +92,6 @@ export const AuthController = async (client) => {
         try {
             if (code) {
                 await client.signUp(username, password, code);
-                signupLink.click();
                 await message("Signed up successfully. You can now sign in as usual.");
             }
             else {
@@ -101,5 +105,5 @@ export const AuthController = async (client) => {
         }
     }
 
-    return [elt, store];
+    return [controller, username];
 }

@@ -1,37 +1,34 @@
 import { message } from "https://esm.sh/cf-alert@0.4.1";
-import { cf } from "../deps.js"
+import { cf } from "../deps.js";
+import { Field } from "./Field.js";
 
 export const CodeGenerator = (client) => {
     const hidden = new cf.Store(true);
-    const [elt, form, results] = cf.nu('div#code-generator-wrapper.modal.hidden', {
-        raw: true,
-        gimme: ['form', 'ul'],
-        c: cf.html`
-        <div id=code-generator>
-            <h2>Huzzah! You discovered the secret menu!</h2>
-            <p>Sadly, that's not enough... you need the password too.</p>
-            <form>
-                <div class='form-group'>
-                    <label for=admin-password>Password</label>
-                    <input type=password name=admin-password id=admin-password>
-                </div>
+    const password = Field({ name: 'cf-gen-password', type: 'password', label: 'Password' });
+    const submit = Field('cf-submit', 'submit');
+    const results = cf.nu('ul.results').ref();
 
-                <div class='form-group submit-group'>
-                    <input type=submit value=Submit>
-                </div>
-            </form>
-
-            <ul class=results></ul>
-        </div>
-        `
-    })
+    const [elt, form] = cf.nu('div#code-generator-wrapper.modal.hidden')
+        .gimme('form')
+        .html`<div id=code-generator>
+                <h2>Huzzah! You discovered the secret menu!</h2>
+                <p>Sadly, that's not enough... you need the password too.</p>
+                <form>
+                    <cf-slot name=password></cf-slot>
+                    <cf-slot name=submit></cf-slot>
+                </form>
+                
+                <cf-slot name=results></cf-slot>
+            </div>`
+        .children({ submit, password, results })
+        .done();
 
     form.onsubmit = async (e) => {
         e.preventDefault();
         const pass = form.querySelector("#admin-password").value.trim();
         try {
             const result = await client.genSignupCode(pass);
-            results.append(...cf.nu('li', { c: result }));
+            results.append(cf.nu('li').content(result).ref());
         }
         catch (e) {
             await message(e.message);
