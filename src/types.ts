@@ -8,7 +8,7 @@ export interface ColleOptions {
 export interface FileRecord {
     uploader: string;
     data: string;
-    metadata?: string;
+    metadata: Record<string, string | number | boolean>;
     type: string;
 }
 
