@@ -2,7 +2,6 @@ import { cf, getName, confirm } from "../deps.js";
 
 const PasteItem = (item, client) => {
     const name = getName(item);
-    console.log(name);
     const [elt, del] = cf.nu('li.paste-item')
         .gimme('.delete-item')
         .html`<div class=item-name>${name}</div>

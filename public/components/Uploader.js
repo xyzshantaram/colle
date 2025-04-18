@@ -29,7 +29,6 @@ const ImageUpload = (onChange, data) => {
 
 const handleUpload = async (client, fileData) => {
     const { filename, description, contents, isImg } = fileData.current();
-    console.log(fileData.current())
     const language = (!isImg) && filename && filename.includes('.')
         ? filename.split('.').at(-1) : undefined;
 

@@ -22,7 +22,6 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
             const rawContent = body.get("contents");
             let type = "text/plain";
 
-            console.log(rawContent);
             const asBlob: Uint8Array | null = await (() => {
                 if (rawContent instanceof Blob) {
                     type = rawContent.type;
