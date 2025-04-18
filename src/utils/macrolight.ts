@@ -6,8 +6,8 @@ export const macrolight = (code: string, lang: string) => {
         keywords: keywords,
         styles: {
             keyword: "font-weight: bold",
-            punctuation: "color: blue",
-            string: "color: forestgreen",
+            punctuation: "color: #055d05",
+            string: "color: #2A2AA2",
             comment: "font-style: italic; color: gray",
         },
     });

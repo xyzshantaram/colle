@@ -13,8 +13,10 @@ const PasteItem = (item, client) => {
         .done();
 
     del.onclick = async () => {
-        if (await confirm('Are you sure you want to delete this paste?'))
+        if (await confirm('Are you sure you want to delete this paste?')) {
             await client.deleteFile(item.uuid);
+            location.reload();
+        }
     }
 
     return elt;
