@@ -164,6 +164,8 @@
     "https://deno.land/x/bcrypt@v0.4.1/src/bcrypt/bcrypt.ts": "ec221648cc6453ea5e3803bc817c01157dada06aa6f7a0ba6b9f87aae32b21e2",
     "https://deno.land/x/bcrypt@v0.4.1/src/main.ts": "08d201b289c8d9c46f8839c69cd6625b213863db29775c7a200afc3b540e64f8",
     "https://deno.land/x/colle@2.1.1/src/Colle.js": "a87e23afefe34df539f41d904ecab264d1aef6ff63a1b092fd6aab8fe68e3703",
+    "https://deno.land/x/colle@2.2.0/src/Colle.js": "92ac1b98700c9aa92c5b6ec10ebb3d1d48e2ee4b2ac17d73af4109dc5fb7a6a4",
+    "https://deno.land/x/colle@2.2.0/src/types.ts": "8b0df34dcf385ca0cd797a56a4df9ba0803e51d4032f7d5baa267550ebf0be7f",
     "https://deno.land/x/djwt@v3.0.1/algorithm.ts": "b1c6645f9dbd6e6c47c123a3b18c28b956f91c65ed17f5b6d5d968fc3750542b",
     "https://deno.land/x/djwt@v3.0.1/deps.ts": "c8b329dc18c54f93879699ffb728bd805d548f7c64c4d2916efa5fb2c712cc47",
     "https://deno.land/x/djwt@v3.0.1/mod.ts": "eca176976595654b8a536e7b8029a029c435d079ef58feff2d3bde33ea107417",
