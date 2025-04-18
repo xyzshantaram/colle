@@ -1,7 +1,7 @@
 import { template } from "campfire";
 import { FileMeta } from "../types.ts";
 
-export const getName = (file: FileMeta, quoted = true) => {
+export const getName = (file: FileMeta, quoted = false) => {
     const name = file.metadata.name || file.metadata.description;
     if (!name) return "Untitled Paste";
     if (quoted) return `"${name}"`;

@@ -1,7 +1,14 @@
-import { cf, getName, confirm } from "../deps.js";
+import { cf, confirm } from "../deps.js";
+
+const getName = (file, quoted = false) => {
+    const name = file.metadata.name || file.metadata.description;
+    if (!name) return 'Untitled Paste';
+    if (quoted) return `"${name}"`;
+    return name;
+}
 
 const PasteItem = (item, client) => {
-    const name = getName(item);
+    const name = getName(item, true);
     const [elt, del] = cf.nu('li.paste-item')
         .gimme('.delete-item')
         .html`<div class=item-name>${name}</div>

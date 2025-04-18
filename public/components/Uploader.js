@@ -1,4 +1,4 @@
-import { cf, fatal } from "../deps.js";
+import { cf, message } from "../deps.js";
 import { Field } from "./Field.js";
 
 function blobToBase64(blob) {
@@ -32,7 +32,7 @@ const handleUpload = async (client, fileData) => {
     const language = (!isImg) && filename && filename.includes('.')
         ? filename.split('.').at(-1) : undefined;
 
-    fatal("Uploading, you will be redirected...", "Info");
+    message("Uploading, you will be redirected...", "Info");
 
     const metadata = {
         name: !isImg ? filename : undefined,
@@ -40,10 +40,9 @@ const handleUpload = async (client, fileData) => {
         description
     };
 
-    const uuid = await client.upload(contents, {
-        metadata: JSON.stringify(metadata)
-    });
+    message("Upload successful.");
 
+    const uuid = await client.upload(contents, metadata);
     globalThis.location = client.makeUrl(`/view/${uuid}`);
 }
 
@@ -116,11 +115,15 @@ export const Uploader = (client, username) => {
     elt.toggleAttribute('open', open);
 
     textarea.onchange = () => {
-        fileData.update({
-            contents: textarea.value,
-            type: 'text/plain',
-            filename: filenameInput.value.trim()
-        })
+        fileData.update(v => ({ ...v, type: 'text/plain', contents: textarea.value }));
+    }
+
+    filenameInput.onchange = () => {
+        fileData.update(v => ({ ...v, type: 'text/plain', filename: filenameInput.value }));
+    }
+
+    descInput.onchange = () => {
+        fileData.update(v => ({ ...v, description: descInput.value.trim(), isImg: true }));
     }
 
     fileData.on('update', (val) => {
