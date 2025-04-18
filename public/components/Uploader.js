@@ -36,12 +36,12 @@ const handleUpload = async (client, fileData) => {
     fatal("Uploading, you will be redirected...", "Info");
 
     const uuid = await client.upload(contents, type, {
-        name: !isImg ? name : undefined,
+        name: !isImg ? filename : undefined,
         language,
         description
     });
 
-    globalThis.location = client.makeUrl(`/?view=${uuid}`);
+    globalThis.location = client.makeUrl(`/view/${uuid}`);
 }
 
 const SubmitButton = (name, client, fileData) => Field({
