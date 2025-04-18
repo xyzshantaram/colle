@@ -3,12 +3,15 @@ import { Field } from "./Field.js";
 import { UserPastes } from "./UserPastes.js";
 /** @import cf from "https://esm.sh/campfire.js@4.0.0-rc17" */
 
-const AuthIndicator = (username, state) => cf
+const AuthIndicator = (username, state, signOut) => cf
     .nu('.auth-indicator')
     .deps({ username })
-    .on('click', () => state.current() === 'hidden' && state.update('signin'))
+    .on('click', () => {
+        if (username.current()) return signOut();
+        if (state.current() === 'hidden') state.update('signin');
+    })
     .render(({ username }, { b }) =>
-        b.content(username ? 'Not signed in.' : `Signed in as ${username}`)
+        b.content(username ? `Signed in as ${username}` : 'Not signed in.')
             .attr('title', username ? 'Sign out' : 'Sign in'))
     .ref();
 
@@ -27,7 +30,7 @@ export const AuthController = async (client) => {
     const formState = cf.store({ value: 'signin' });
     const username = cf.store({ value: null });
 
-    const [signupField] = cf.nu(Field({ name: 'signup-code', label: "Signup code" }))
+    const [signupField] = cf.nu(Field({ name: 'signup-code', label: "Signup code" })[0])
         .deps({ formState })
         .render(({ formState }, { elt }) => {
             elt.classList.toggle('hidden', formState === 'signin')
@@ -36,13 +39,18 @@ export const AuthController = async (client) => {
 
     const signupLink = SignupLink(formState);
 
+    const signOut = () => {
+        localStorage.removeItem('cached-token');
+        globalThis.location.reload();
+    }
+
     const children = {
         signupField,
         signupLink,
-        usernameField: Field({ name: 'username', label: 'Username' }),
-        passwordField: Field({ name: 'password', label: "Password", type: "Password" }),
-        submitField: Field({ name: 'submit', type: 'submit', value: "Submit" }),
-        indicator: AuthIndicator(username, formState)
+        usernameField: Field({ name: 'username', label: 'Username' })[0],
+        passwordField: Field({ name: 'password', label: "Password", type: "Password" })[0],
+        submitField: Field({ name: 'submit', type: 'submit', value: "Submit" })[0],
+        indicator: AuthIndicator(username, formState, signOut)
     }
 
 
@@ -73,10 +81,9 @@ export const AuthController = async (client) => {
 
     try {
         const token = localStorage.getItem('cached-token');
-        if (token) {
-            const username = await client.tryCachedToken(token);
-            await setSignedIn(username);
-        }
+        if (!token) throw 0;
+        const username = await client.tryCachedToken(token);
+        await setSignedIn(username);
     }
     catch {
         console.warn('Authing with cached token failed, proceeding silently...');
