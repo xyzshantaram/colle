@@ -2,7 +2,7 @@
 
 A dead-simple pastebin service.
 
-Intended for use on <https://shantaram.xyz>.
+Intended for use on <https://paste.shantaram.xyz>.
 
 ## Usage
 
@@ -24,12 +24,9 @@ import { Colle } from "https://deno.land/x/colle@2.1.1/src/Colle.js";
 
 if working directly in the browser.
 
-## Todo
+## TODO
 
-- [ ] FE: Add md parsing
 - [ ] Allow nicknames (custom slugs) for pastes
-- [ ] Implement signout somehow
-- [ ] Cache JWT on client side
 
 ## License
 
