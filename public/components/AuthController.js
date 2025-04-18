@@ -81,7 +81,6 @@ export const AuthController = async (client) => {
         usernameField: Field({ name: 'username', label: 'Username' })[0],
         passwordField: Field({ name: 'password', label: "Password", type: "Password" })[0],
         submitField: Field({ name: 'submit', type: 'submit', value: "Submit" })[0],
-        indicator: AuthIndicator(username, formState, signOut)
     }
 
     const setSignedIn = async (user) => {
@@ -92,7 +91,10 @@ export const AuthController = async (client) => {
 
     const [controller] = cf.nu('div#auth-controller')
         .deps({ formState })
-        .children({ form: SignupForm(client, children, setSignedIn) })
+        .children({
+            form: SignupForm(client, children, setSignedIn),
+            indicator: AuthIndicator(username, formState, signOut)
+        })
         .html`
         <cf-slot name="indicator"></cf-slot>
         <div class="auth-form-wrapper">
