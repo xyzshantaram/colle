@@ -1,60 +1,65 @@
-// src/kv.ts
+import { ColleOptions, FileMeta, FileRecord } from "./types.ts";
 
-import { FileRecord } from "./types.ts";
+const decoder = new TextDecoder("utf-8");
+const encoder = new TextEncoder();
+
+const getMeta = async (kv: ColleOptions["kv"], key: Deno.KvKey) => {
+    const entry = await kv.get<FileMeta>(key);
+    if (!entry.value) return null;
+    return entry.value;
+};
+
+const getContents = async (kv: ColleOptions["kv"], key: Deno.KvKey) => {
+    const entry = await kv.getBlob(key);
+    if (!entry.value) return null;
+    return entry.value; // Uint8Array
+};
 
 // Store a file record and return the generated UUID
 export async function saveFileRecord(
-    kv: Deno.Kv,
+    kv: ColleOptions["kv"],
     { uploader, data, metadata, type }: FileRecord,
 ): Promise<{ uuid: string }> {
     const uuid = crypto.randomUUID();
-    await kv.set(["files", uuid], {
-        uploader,
-        data,
-        metadata,
-        type,
-    });
+    await kv.set(["files", uuid], { uploader, type, metadata });
+    await kv.setBlob(["contents", uuid], encoder.encode(data));
     return { uuid };
 }
 
-// Get a file record by UUID
+// Get a file record by UUID (merges meta and binary)
 export async function getFileRecord(
-    kv: Deno.Kv,
+    kv: ColleOptions["kv"],
     uuid: string,
 ): Promise<FileRecord | null> {
-    const { value } = await kv.get<FileRecord>(["files", uuid]);
-    if (!value) return null;
-    return {
-        ...value,
-        metadata: value.metadata,
-    };
+    const meta = await getMeta(kv, ["files", uuid]);
+    if (!meta) return null;
+    const data = await getContents(kv, ["contents", uuid]);
+    if (!data) return null;
+    return { ...meta, data: decoder.decode(data) };
 }
 
-// Delete a file record by UUID
+// Delete a file record by UUID (from both meta and contents)
 export async function deleteFileRecord(
-    kv: Deno.Kv,
+    kv: ColleOptions["kv"],
     uuid: string,
 ): Promise<boolean> {
-    const { value: file } = await kv.get<FileRecord>(["files", uuid]);
-    if (!file) return false;
+    const meta = await getMeta(kv, ["files", uuid]);
+    if (!meta) return false;
     await kv.delete(["files", uuid]);
+    await kv.delete(["contents", uuid]);
     return true;
 }
 
-// List file records, optionally filter by uploader
+// List file records' metadata (efficient, no blobs)
 export async function* listFileRecords(
-    kv: Deno.Kv,
+    kv: ColleOptions["kv"],
     filter?: { uploader?: string },
-): AsyncGenerator<{ uuid: string; record: FileRecord }> {
-    for await (const entry of kv.list<FileRecord>({ prefix: ["files"] })) {
-        const [, uuid] = entry.key;
-        if (filter?.uploader && entry.value.uploader !== filter.uploader) continue;
-        yield {
-            uuid: String(uuid),
-            record: {
-                ...entry.value,
-                metadata: entry.value.metadata,
-            },
-        };
+): AsyncGenerator<{ uuid: string; record: FileMeta }> {
+    for await (const { key } of kv.list({ prefix: ["files"] })) {
+        const [, uuid] = key;
+        const meta = await getMeta(kv, key);
+        if (!meta) continue;
+        if (filter?.uploader && meta.uploader !== filter.uploader) continue;
+        yield { uuid: String(uuid), record: meta };
     }
 }
