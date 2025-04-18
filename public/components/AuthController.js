@@ -22,13 +22,14 @@ const SignupLink = (state) => cf.nu('a.signup-link')
     .on('click', () => state.update(v => v === 'signup' ? 'signin' : 'signup'))
     .done();
 
-const SignupForm = (client, children) => cf.nu('form.auth-form')
+const SignupForm = (client, children, setSignedIn) => cf.nu('form.auth-form')
     .children(children)
     .html`<cf-slot name="usernameField"></cf-slot>
     <cf-slot name="passwordField"></cf-slot>
     <cf-slot name='signupLink'></cf-slot>
     <cf-slot name="signupField"></cf-slot>
     <cf-slot name="submitField"></cf-slot>`
+    .render(({ formState }, { elt }) => { elt.classList.toggle('hidden', formState === 'hidden') })
     .on('submit', async function (e) {
         e.preventDefault();
         const data = new FormData(this);
@@ -83,10 +84,15 @@ export const AuthController = async (client) => {
         indicator: AuthIndicator(username, formState, signOut)
     }
 
+    const setSignedIn = async (user) => {
+        username.update(user);
+        formState.update('hidden');
+        controller.append(...await UserPastes(client));
+    }
 
     const [controller] = cf.nu('div#auth-controller')
         .deps({ formState })
-        .children({ form: SignupForm(client, children) })
+        .children({ form: SignupForm(client, children, setSignedIn) })
         .html`
         <cf-slot name="indicator"></cf-slot>
         <div class="auth-form-wrapper">
@@ -94,13 +100,6 @@ export const AuthController = async (client) => {
         </div>
         `
         .done();
-
-
-    const setSignedIn = async (user) => {
-        username.update(user);
-        formState.update('hidden');
-        controller.append(...await UserPastes(client));
-    }
 
     try {
         const token = localStorage.getItem('cached-token');
