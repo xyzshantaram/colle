@@ -87,6 +87,18 @@ Deno.test("colle api tests (with client)", async (t) => {
         assert(typeof fileUuid === "string");
     });
 
+    await t.step("Uploading image files should succeed", async () => {
+        const file = await Deno.readFile("./fixture.png");
+        const uuid = await colle.upload(new File([file.buffer], "fixture.png"), {
+            description: "test",
+        });
+        const retrieved = await colle.getFile(uuid);
+        assert(
+            file.every((elem, i) => retrieved.data[i] === elem),
+            "Uploaded file must exactly match retrieved",
+        );
+    });
+
     await t.step("Listing files should succeed", async () => {
         const files = await colle.listFiles();
         assert(Array.isArray(files));
