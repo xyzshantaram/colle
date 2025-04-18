@@ -4,8 +4,8 @@ import { Field } from "./Field.js";
 
 export const CodeGenerator = (client) => {
     const hidden = new cf.Store(true);
-    const [password] = Field({ name: 'cf-gen-password', type: 'password', label: 'Password' });
-    const [submit] = Field({ name: 'cf-submit', type: 'submit' });
+    const [password, passwordField] = Field({ name: 'cf-gen-password', type: 'password', label: 'Password' });
+    const [submit] = Field({ name: 'cf-submit', type: 'submit', value: "Generate" });
     const results = cf.nu('ul.results').ref();
 
     const [elt, form] = cf.nu('div#code-generator-wrapper.modal.hidden')
@@ -25,7 +25,7 @@ export const CodeGenerator = (client) => {
 
     form.onsubmit = async (e) => {
         e.preventDefault();
-        const pass = form.querySelector("#admin-password").value.trim();
+        const pass = passwordField.value.trim();
         try {
             const result = await client.genSignupCode(pass);
             results.append(cf.nu('li').content(result).ref());
@@ -36,10 +36,10 @@ export const CodeGenerator = (client) => {
     }
 
     globalThis.addEventListener('keydown', (e) => {
-        if (!hidden.value && e.key === 'Escape') hidden.update(!hidden.value);
+        if (!hidden.current() && e.key === 'Escape') hidden.update(!hidden.current());
     })
 
-    hidden.on('update', (val) => elt.classList.toggle('hidden', val));
+    hidden.on('update', ({ value }) => elt.classList.toggle('hidden', value));
 
     return [elt, hidden];
 }
