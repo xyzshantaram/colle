@@ -1,7 +1,8 @@
+import { openKvToolbox } from "@kitsonk/kv-toolbox";
 import { createApp } from "./src/app.ts";
 
 if (import.meta.main) {
-    const kv = await Deno.openKv();
+    const kv = await openKvToolbox();
 
     const pass = Deno.env.get("COLLE_ADMIN_PASS");
     if (!pass) {
