@@ -1,4 +1,12 @@
 import { template } from "campfire";
+import { FileMeta } from "../types.ts";
+
+export const getName = (file: FileMeta, quoted = true) => {
+    const name = file.metadata.name || file.metadata.description;
+    if (!name) return "Untitled Paste";
+    if (quoted) return `"${name}"`;
+    return name;
+};
 
 export const ViewTemplate = template(`
 <!DOCTYPE html>
@@ -19,7 +27,7 @@ export const ViewTemplate = template(`
         <p>a dead-simple pastebin</p>
         <h2>Viewing file: "{{ name }}"</h2>
         <div class=view-actions>
-            <a href="{{ url }}">View raw</a>
+            <a href={{ url }}>View raw</a>
         </div>
 
         <hr class='actions-separator'>

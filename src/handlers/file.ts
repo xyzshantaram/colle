@@ -4,7 +4,7 @@ import { error } from "../utils/error.ts";
 import { ColleOptions } from "../types.ts";
 import { checkToken } from "../middleware/auth.ts";
 import * as storage from "../storage.ts";
-import { ViewTemplate } from "./view.ts";
+import { getName, ViewTemplate } from "./view.ts";
 import { renderText } from "../utils/render.ts";
 
 export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
@@ -39,7 +39,7 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
             const username = state.user?.username;
             if (!username) return error(response)("Unauthorized", 401);
             if (!body.uuid) return error(response)("UUID must be specified!");
-            const file = await storage.getFileRecord(kv, body.uuid);
+            const file = await storage.getFileMeta(kv, body.uuid);
             if (!file || file.uploader !== username) {
                 return error(response)("File not found.", 404);
             }
@@ -93,7 +93,7 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
             isImg,
             url: "/contents/" + params.uuid,
             contents,
-            name: file.metadata.name || file.metadata.description || "Untitled",
+            name: getName(file, true),
         }));
     });
 
