@@ -1,5 +1,5 @@
 import { error } from "../utils/error.ts";
-import * as bcrypt from "@felix/bcrypt";
+import argon2 from "argon2";
 import * as jwt from "@zaubrik/djwt";
 import type { NHttp } from "@nhttp/nhttp";
 import type { ColleOptions, UserRecord } from "../types.ts";
@@ -40,7 +40,7 @@ export function registerUserRoutes(app: NHttp, opts: ColleOptions) {
 
         await kv.delete(["signup-codes", body.code]);
         await kv.set(["users", body.username], {
-            password: await bcrypt.hash(body.password),
+            password: await argon2.hash(body.password),
         });
 
         return { message: "ok" };
@@ -56,7 +56,7 @@ export function registerUserRoutes(app: NHttp, opts: ColleOptions) {
             body.username,
         ]);
 
-        if (!user || !(await bcrypt.verify(body.password, user.password))) {
+        if (!user || !(await argon2.verify(user.password, body.password))) {
             return error(response)("Invalid username or password.");
         }
 
