@@ -25,7 +25,7 @@ export const ViewTemplate = template(`
     <div id="root">
         <h1><a href="/">Colle<a></h1>
         <p>a dead-simple pastebin</p>
-        <h2>Viewing file: "{{ name }}"</h2>
+        <h2>Viewing file: {{ name }}</h2>
         <div class=view-actions>
             <a href={{ url }}>View raw</a>
         </div>

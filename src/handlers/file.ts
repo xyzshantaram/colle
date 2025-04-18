@@ -27,7 +27,7 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
                     type = rawContent.type;
                     return rawContent.bytes();
                 } else if (typeof rawContent === "string") {
-                    return Promise.resolve(encoder.encode(rawContent));
+                    return Promise.resolve(encoder.encode(rawContent.replace(/\r\n/g, "\n")));
                 }
                 return null;
             })();
