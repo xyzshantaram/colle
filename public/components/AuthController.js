@@ -19,11 +19,41 @@ const SignupLink = (state) => cf.nu('a.signup-link')
     .deps({ state })
     .attr('href', 'javascript:void(0)')
     .render(({ state }) => state === 'signup' ? "Sign in" : "Don't have an account?")
-    .on('click', () => {
-        state.update(v => v === 'signup' ? 'signin' : 'signup');
-        console.log(state.current());
-    })
+    .on('click', () => state.update(v => v === 'signup' ? 'signin' : 'signup'))
     .done();
+
+const SignupForm = (client, children) => cf.nu('form.auth-form')
+    .children(children)
+    .html`<cf-slot name="usernameField"></cf-slot>
+    <cf-slot name="passwordField"></cf-slot>
+    <cf-slot name='signupLink'></cf-slot>
+    <cf-slot name="signupField"></cf-slot>
+    <cf-slot name="submitField"></cf-slot>`
+    .on('submit', async function (e) {
+        e.preventDefault();
+        const data = new FormData(this);
+        const code = data.get('signup-code')?.trim();
+        const username = data.get('username')?.trim();
+        const password = data.get('password')?.trim();
+
+        try {
+            if (code) {
+                await client.signUp(username, password, code);
+                await message("Signed up successfully. You can now sign in as usual.");
+            }
+            else {
+                await client.signIn(username, password);
+                localStorage.setItem('cached-token', client.getToken());
+                await setSignedIn(username);
+            }
+
+            this.reset();
+        }
+        catch (e) {
+            await message(e.message);
+        }
+    })
+    .ref();
 
 export const AuthController = async (client) => {
     /** values: signup, signin, hidden */
@@ -54,22 +84,15 @@ export const AuthController = async (client) => {
     }
 
 
-    const [controller, form] = cf.nu('div#auth-controller')
-        .gimme('.auth-form')
+    const [controller] = cf.nu('div#auth-controller')
         .deps({ formState })
-        .children(children)
-        .render(({ formState }, { b }) => b.html`
+        .children({ form: SignupForm(client, children) })
+        .html`
         <cf-slot name="indicator"></cf-slot>
-        <div class="auth-form-wrapper ${formState === 'hidden' ? 'hidden' : ''}">
-            <form class='auth-form'>
-                <cf-slot name="usernameField"></cf-slot>
-                <cf-slot name="passwordField"></cf-slot>
-                <cf-slot name='signupLink'></cf-slot>
-                <cf-slot name="signupField"></cf-slot>
-                <cf-slot name="submitField"></cf-slot>
-            </form>
+        <div class="auth-form-wrapper">
+            <cf-slot name='form'></cf-slot>
         </div>
-        `)
+        `
         .done();
 
 
@@ -87,29 +110,6 @@ export const AuthController = async (client) => {
     }
     catch {
         console.warn('Authing with cached token failed, proceeding silently...');
-    }
-
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const data = new FormData(form);
-        const code = data.get('code')?.trim();
-        const username = data.get('username')?.trim();
-        const password = data.get('password')?.trim();
-
-        try {
-            if (code) {
-                await client.signUp(username, password, code);
-                await message("Signed up successfully. You can now sign in as usual.");
-            }
-            else {
-                await client.signIn(username, password);
-                localStorage.setItem('cached-token', client.getToken());
-                await setSignedIn(username);
-            }
-        }
-        catch (e) {
-            await message(e.message);
-        }
     }
 
     return [controller, username];
