@@ -1,9 +1,11 @@
-import { error } from "../utils/error.ts";
 import { decodeBase64 } from "@std/encoding";
 import { NHttp } from "@nhttp/nhttp";
+import { error } from "../utils/error.ts";
 import { ColleOptions } from "../types.ts";
 import { checkToken } from "../middleware/auth.ts";
 import * as storage from "../storage.ts";
+import { ViewTemplate } from "./view.ts";
+import { renderText } from "../utils/render.ts";
 
 export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
     const { kv, cryptoKey } = opts;
@@ -71,10 +73,29 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         },
     );
 
-    app.get("/view/:uuid", async ({ params, response }) => {
-        const entry = await kv.get<FileRecord>(["files", params.uuid]);
-        if (!entry.value) return error(response)("File not found", 404);
-        const file = entry.value;
+    app.get("/view/:uuid", async ({ params, response, search }) => {
+        const file = await storage.getFileRecord(kv, params.uuid);
+        if (!file) return error(response)("File not found", 404);
+        const isImg = file.type.startsWith("image");
+
+        let ext = "txt";
+        const { name } = file.metadata;
+        if (typeof name === "string") {
+            if (name.includes(".")) ext = name.split(".").at(-1) || "txt";
+        }
+        const searchParams = new URLSearchParams(search || "");
+        const hl = searchParams.get("hl");
+        if (hl) ext = hl;
+        const contents = isImg ? undefined : renderText(ext, file.data);
+
+        return response.status(200).html(ViewTemplate({
+            file,
+            isImg,
+            url: "/contents/" + params.uuid,
+            contents,
+            name: file.metadata.name || file.metadata.description || "Untitled",
+        }));
+    });
 
     app.get("/contents/:uuid", async ({ params, response }) => {
         const file = await storage.getFileRecord(kv, params.uuid);
