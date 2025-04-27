@@ -27,7 +27,6 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
                     type = rawContent.type;
                     return rawContent.bytes();
                 } else if (typeof rawContent === "string") {
-                    console.log("rawContent was string");
                     return Promise.resolve(encoder.encode(rawContent.replace(/\r\n/g, "\n")));
                 }
                 return null;
@@ -104,12 +103,7 @@ export function registerFileRoutes(app: NHttp, opts: ColleOptions) {
         const searchParams = new URLSearchParams(search || "");
         const hl = searchParams.get("hl");
         if (hl) ext = hl;
-        const contents = isImg ? undefined : renderText(
-            ext,
-            decoder
-                .decode(file.data)
-                .replace(/\r\n/g, "\n"),
-        );
+        const contents = isImg ? undefined : renderText(ext, decoder.decode(file.data));
 
         return response.status(200).html(ViewTemplate({
             file,
