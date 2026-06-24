@@ -1,5 +1,7 @@
 FROM denoland/deno:alpine-2.8.3 AS builder
 
+RUN apk add --no-cache libstdc++
+
 WORKDIR /app
 
 COPY deno.json deno.lock ./
@@ -9,6 +11,8 @@ COPY mod.ts ./
 RUN deno cache mod.ts
 
 FROM denoland/deno:alpine-2.8.3
+
+RUN apk add --no-cache libstdc++
 
 WORKDIR /app
 
