@@ -1,4 +1,4 @@
-FROM denoland/deno:alpine-2.8.3 AS builder
+FROM docker.io/denoland/deno:alpine-2.8.3 AS builder
 
 RUN apk add --no-cache libstdc++
 
@@ -10,7 +10,7 @@ COPY mod.ts ./
 
 RUN deno cache mod.ts
 
-FROM denoland/deno:alpine-2.8.3
+FROM docker.io/denoland/deno:alpine-2.8.3
 
 RUN apk add --no-cache libstdc++
 
@@ -22,8 +22,7 @@ COPY --from=builder /app/mod.ts ./
 COPY public/ ./public/
 
 RUN deno cache mod.ts && \
-    mkdir -p /app/data && \
-    chown -R deno:deno /app
+    mkdir -p /app/data
 
 USER deno
 
