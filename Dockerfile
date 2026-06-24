@@ -24,8 +24,6 @@ COPY public/ ./public/
 RUN deno cache mod.ts && \
     mkdir -p /app/data
 
-USER deno
-
 ENV COLLE_DB_PATH=/app/data/colle.db
 ENV COLLE_ENV=PROD
 ENV COLLE_PORT=3000
